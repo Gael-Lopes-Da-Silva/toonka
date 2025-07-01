@@ -27,7 +27,7 @@
     "lint": "eslint \"src/**/*.ts*\"",
     "postinstall": "drizzle-kit generate",
     "preview": "qwik build preview && vite preview --open",
-    "start": "vite --open --mode ssr",
+    "start": "vite --mode ssr --host",
     "qwik": "qwik"
   },
   "devDependencies": {
