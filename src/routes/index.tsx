@@ -1,7 +1,7 @@
 import { component$ } from "@builder.io/qwik";
 import { DocumentHead } from "@builder.io/qwik-city";
-import { db } from "../../drizzle/db";
-import { user } from "../../drizzle/schema";
+// import { db } from "../../drizzle/db";
+// import { user } from "../../drizzle/schema";
 
 export const head: DocumentHead = {
     title: "Toonka | Reading simplified",

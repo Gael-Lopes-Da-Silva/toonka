@@ -3,7 +3,7 @@ services:
     container_name: web
     build: .
     volumes:
-      - .:/app
+      - ./:/app
     ports:
       - 3000:3000
     tty: true
