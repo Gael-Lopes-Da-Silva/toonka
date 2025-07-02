@@ -91,7 +91,7 @@ export const bookStatistic = toonka.table("book_statistic", {
     index("book_statistic_book_id_idx").on(table.bookId),
 ]);
 
-export const bookTag = toonka.table("boo_ktag", {
+export const bookTag = toonka.table("book_tag", {
     id: serial("id").primaryKey(),
     bookId: integer("book_id").notNull().references(() => book.id),
     name: text("name").notNull(),

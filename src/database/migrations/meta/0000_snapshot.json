@@ -1,5 +1,5 @@
 {
-  "id": "33d9c062-753f-4c2e-9745-1301271f98c9",
+  "id": "327f53e1-9068-415c-9814-fca61bcb44a8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -538,8 +538,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "toonka.boo_ktag": {
-      "name": "boo_ktag",
+    "toonka.book_tag": {
+      "name": "book_tag",
       "schema": "toonka",
       "columns": {
         "id": {
@@ -622,9 +622,9 @@
         }
       },
       "foreignKeys": {
-        "boo_ktag_book_id_book_id_fk": {
-          "name": "boo_ktag_book_id_book_id_fk",
-          "tableFrom": "boo_ktag",
+        "book_tag_book_id_book_id_fk": {
+          "name": "book_tag_book_id_book_id_fk",
+          "tableFrom": "book_tag",
           "tableTo": "book",
           "schemaTo": "toonka",
           "columnsFrom": [
@@ -1339,10 +1339,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "user_excluded_tag_tag_id_boo_ktag_id_fk": {
-          "name": "user_excluded_tag_tag_id_boo_ktag_id_fk",
+        "user_excluded_tag_tag_id_book_tag_id_fk": {
+          "name": "user_excluded_tag_tag_id_book_tag_id_fk",
           "tableFrom": "user_excluded_tag",
-          "tableTo": "boo_ktag",
+          "tableTo": "book_tag",
           "schemaTo": "toonka",
           "columnsFrom": [
             "tag_id"

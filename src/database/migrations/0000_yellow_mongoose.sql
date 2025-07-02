@@ -51,7 +51,7 @@ CREATE TABLE "toonka"."book_statistic" (
 	"book_id" integer NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "toonka"."boo_ktag" (
+CREATE TABLE "toonka"."book_tag" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"book_id" integer NOT NULL,
 	"name" text NOT NULL,
@@ -123,14 +123,14 @@ ALTER TABLE "toonka"."book_cover" ADD CONSTRAINT "book_cover_book_id_book_id_fk"
 ALTER TABLE "toonka"."book_name" ADD CONSTRAINT "book_name_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "toonka"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "toonka"."book_provider" ADD CONSTRAINT "book_provider_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "toonka"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "toonka"."book_statistic" ADD CONSTRAINT "book_statistic_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "toonka"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "toonka"."boo_ktag" ADD CONSTRAINT "boo_ktag_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "toonka"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "toonka"."book_tag" ADD CONSTRAINT "book_tag_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "toonka"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "toonka"."user_bookmark" ADD CONSTRAINT "user_bookmark_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "toonka"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "toonka"."user_bookmark" ADD CONSTRAINT "user_bookmark_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "toonka"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "toonka"."user_bookmark" ADD CONSTRAINT "user_bookmark_chapter_id_book_chapter_id_fk" FOREIGN KEY ("chapter_id") REFERENCES "toonka"."book_chapter"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "toonka"."user_comment" ADD CONSTRAINT "user_comment_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "toonka"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "toonka"."user_comment" ADD CONSTRAINT "user_comment_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "toonka"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "toonka"."user_excluded_tag" ADD CONSTRAINT "user_excluded_tag_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "toonka"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "toonka"."user_excluded_tag" ADD CONSTRAINT "user_excluded_tag_tag_id_boo_ktag_id_fk" FOREIGN KEY ("tag_id") REFERENCES "toonka"."boo_ktag"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "toonka"."user_excluded_tag" ADD CONSTRAINT "user_excluded_tag_tag_id_book_tag_id_fk" FOREIGN KEY ("tag_id") REFERENCES "toonka"."book_tag"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "toonka"."user_permission" ADD CONSTRAINT "user_permission_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "toonka"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "toonka"."user_statistic" ADD CONSTRAINT "user_statistic_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "toonka"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "book_type_idx" ON "toonka"."book" USING btree ("type");--> statement-breakpoint
@@ -145,9 +145,9 @@ CREATE INDEX "book_cover_book_id_idx" ON "toonka"."book_cover" USING btree ("boo
 CREATE INDEX "book_name_book_id_idx" ON "toonka"."book_name" USING btree ("book_id");--> statement-breakpoint
 CREATE INDEX "book_provider_book_id_idx" ON "toonka"."book_provider" USING btree ("book_id");--> statement-breakpoint
 CREATE INDEX "book_statistic_book_id_idx" ON "toonka"."book_statistic" USING btree ("book_id");--> statement-breakpoint
-CREATE INDEX "book_tag_book_id_idx" ON "toonka"."boo_ktag" USING btree ("book_id");--> statement-breakpoint
-CREATE INDEX "book_tag_deleted_at_idx" ON "toonka"."boo_ktag" USING btree ("deleted_at");--> statement-breakpoint
-CREATE INDEX "book_tag_created_at_idx" ON "toonka"."boo_ktag" USING btree ("created_at");--> statement-breakpoint
+CREATE INDEX "book_tag_book_id_idx" ON "toonka"."book_tag" USING btree ("book_id");--> statement-breakpoint
+CREATE INDEX "book_tag_deleted_at_idx" ON "toonka"."book_tag" USING btree ("deleted_at");--> statement-breakpoint
+CREATE INDEX "book_tag_created_at_idx" ON "toonka"."book_tag" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "user_created_at_idx" ON "toonka"."user" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "user_deleted_at_idx" ON "toonka"."user" USING btree ("deleted_at");--> statement-breakpoint
 CREATE INDEX "user_modified_at_idx" ON "toonka"."user" USING btree ("modified_at");--> statement-breakpoint
