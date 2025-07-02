@@ -2,11 +2,11 @@ import { component$ } from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
 
 export const head: DocumentHead = {
-    title: "Welcome to Qwik",
+    title: "Toonka | Reading simplified",
     meta: [
         {
             name: "description",
-            content: "Qwik site description",
+            content: "A bookmark keeper and a publication tracker.",
         },
     ],
 };
