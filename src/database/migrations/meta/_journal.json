@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1751440287441,
+      "tag": "0000_supreme_ikaris",
+      "breakpoints": true
+    }
+  ]
+}

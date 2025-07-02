@@ -1,115 +1,117 @@
-import { sqliteTable, integer, text, real } from "drizzle-orm/sqlite-core";
+import { pgTable, integer, text, real, boolean, timestamp } from "drizzle-orm/pg-core";
 
-export const book = sqliteTable("book", {
-    id: integer().primaryKey(),
-    type: text({ enum: ["manga", "manhua", "manhwa"] }).notNull(),
-    score: real(),
-    synopsis: text().notNull(),
-    publicationStatus: text().notNull(),
-    chaptersAvailable: integer().notNull(),
-    hidden: integer({ mode: "boolean" }).notNull().default(false),
-    createdAt: text().default("CURRENT_TIMESTAMP"),
-    deletedAt: text(),
+export const book = pgTable("book", {
+    id: integer("id").primaryKey(),
+    type: text("type", { enum: ["manga", "manhua", "manhwa"] }).notNull(),
+    score: real("score"),
+    synopsis: text("synopsis").notNull(),
+    publicationStatus: text("publication_status").notNull(),
+    chaptersAvailable: integer("chapters_available").notNull(),
+    hidden: boolean("hidden").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow(),
+    deletedAt: timestamp("deleted_at"),
 });
 
-export const bookchapter = sqliteTable("bookchapter", {
-    id: integer().primaryKey(),
-    idBook: integer().notNull().references(() => book.id),
-    name: text().notNull(),
-    link: text().notNull(),
-    number: integer().notNull().default(0),
-    createdAt: text().default("CURRENT_TIMESTAMP"),
-    deletedAt: text(),
+export const bookchapter = pgTable("bookchapter", {
+    id: integer("id").primaryKey(),
+    idBook: integer("id_book").notNull().references(() => book.id),
+    name: text("name").notNull(),
+    link: text("link").notNull(),
+    number: integer("number").notNull().default(0),
+    createdAt: timestamp("created_at").defaultNow(),
+    deletedAt: timestamp("deleted_at"),
 });
 
-export const bookcover = sqliteTable("bookcover", {
-    id: integer().primaryKey(),
-    idBook: integer().notNull().references(() => book.id),
-    link: text().notNull().unique(),
+export const bookcover = pgTable("bookcover", {
+    id: integer("id").primaryKey(),
+    idBook: integer("id_book").notNull().references(() => book.id),
+    link: text("link").notNull().unique(),
 });
 
-export const bookname = sqliteTable("bookname", {
-    id: integer().primaryKey(),
-    idBook: integer().notNull().references(() => book.id),
-    name: text().notNull().unique(),
+export const bookname = pgTable("bookname", {
+    id: integer("id").primaryKey(),
+    idBook: integer("id_book").notNull().references(() => book.id),
+    name: text("name").notNull().unique(),
 });
 
-export const bookprovider = sqliteTable("bookprovider", {
-    id: integer().primaryKey(),
-    idBook: integer().notNull().references(() => book.id),
-    name: text().notNull(),
-    link: text().notNull(),
-    linkApi: text(),
+export const bookprovider = pgTable("bookprovider", {
+    id: integer("id").primaryKey(),
+    idBook: integer("id_book").notNull().references(() => book.id),
+    name: text("name").notNull(),
+    link: text("link").notNull(),
+    linkApi: text("link_api"),
 });
 
-export const bookstatistic = sqliteTable("bookstatistic", {
-    id: integer().primaryKey(),
-    idBook: integer().notNull().references(() => book.id),
+export const bookstatistic = pgTable("bookstatistic", {
+    id: integer("id").primaryKey(),
+    idBook: integer("id_book").notNull().references(() => book.id),
 });
 
-export const booktag = sqliteTable("booktag", {
-    id: integer().primaryKey(),
-    idBook: integer().notNull().references(() => book.id),
-    name: text().notNull(),
-    createdAt: text().default("CURRENT_TIMESTAMP"),
-    deletedAt: text(),
+export const booktag = pgTable("booktag", {
+    id: integer("id").primaryKey(),
+    idBook: integer("id_book").notNull().references(() => book.id),
+    name: text("name").notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+    deletedAt: timestamp("deleted_at"),
 });
 
-export const user = sqliteTable("user", {
-    id: integer().primaryKey(),
-    username: text().notNull().unique(),
-    email: text().notNull().unique(),
-    password: text().notNull(),
-    createdAt: text().default("CURRENT_TIMESTAMP"),
-    deletedAt: text(),
-    modifiedAt: text(),
+export const user = pgTable("user", {
+    id: integer("id").primaryKey(),
+    username: text("username").notNull().unique(),
+    email: text("email").notNull().unique(),
+    password: text("password").notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+    deletedAt: timestamp("deleted_at"),
+    modifiedAt: timestamp("modified_at"),
 });
 
-export const userbookmark = sqliteTable("userbookmark", {
-    id: integer().primaryKey(),
-    idUser: integer().notNull().references(() => user.id),
-    idBook: integer().notNull().references(() => book.id),
-    idChapter: integer().references(() => bookchapter.id),
-    status: text({ enum: ["reading", "plan_to_read", "on_hold", "dropped", "completed"] }).notNull().default("reading"),
-    createdAt: text().default("CURRENT_TIMESTAMP"),
-    deletedAt: text(),
-    modifiedAt: text(),
-    lastReadAt: text(),
+export const userbookmark = pgTable("userbookmark", {
+    id: integer("id").primaryKey(),
+    idUser: integer("id_user").notNull().references(() => user.id),
+    idBook: integer("id_book").notNull().references(() => book.id),
+    idChapter: integer("id_chapter").references(() => bookchapter.id),
+    status: text("status", {
+        enum: ["reading", "plan_to_read", "on_hold", "dropped", "completed"],
+    }).notNull().default("reading"),
+    createdAt: timestamp("created_at").defaultNow(),
+    deletedAt: timestamp("deleted_at"),
+    modifiedAt: timestamp("modified_at"),
+    lastReadAt: timestamp("last_read_at"),
 });
 
-export const usercomment = sqliteTable("usercomment", {
-    id: integer().primaryKey(),
-    idUser: integer().notNull().references(() => user.id),
-    idBook: integer().notNull().references(() => book.id),
-    message: text().notNull(),
-    like: integer().notNull().default(0),
-    highlighted: integer({ mode: "boolean" }).notNull().default(false),
-    hidden: integer({ mode: "boolean" }).notNull().default(false),
-    createdAt: text().default("CURRENT_TIMESTAMP"),
-    deletedAt: text(),
-    modifiedAt: text(),
+export const usercomment = pgTable("usercomment", {
+    id: integer("id").primaryKey(),
+    idUser: integer("id_user").notNull().references(() => user.id),
+    idBook: integer("id_book").notNull().references(() => book.id),
+    message: text("message").notNull(),
+    like: integer("like").notNull().default(0),
+    highlighted: boolean("highlighted").notNull().default(false),
+    hidden: boolean("hidden").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow(),
+    deletedAt: timestamp("deleted_at"),
+    modifiedAt: timestamp("modified_at"),
 });
 
-export const userexcludedtag = sqliteTable("userexcludedtag", {
-    id: integer().primaryKey(),
-    idUser: integer().notNull().references(() => user.id),
-    idTag: integer().notNull().references(() => booktag.id),
+export const userexcludedtag = pgTable("userexcludedtag", {
+    id: integer("id").primaryKey(),
+    idUser: integer("id_user").notNull().references(() => user.id),
+    idTag: integer("id_tag").notNull().references(() => booktag.id),
 });
 
-export const userpermission = sqliteTable("userpermission", {
-    id: integer().primaryKey(),
-    idUser: integer().notNull().references(() => user.id),
-    member: integer({ mode: "boolean" }).notNull().default(true),
-    moderator: integer({ mode: "boolean" }).notNull().default(false),
-    administrator: integer({ mode: "boolean" }).notNull().default(false),
+export const userpermission = pgTable("userpermission", {
+    id: integer("id").primaryKey(),
+    idUser: integer("id_user").notNull().references(() => user.id),
+    member: boolean("member").notNull().default(true),
+    moderator: boolean("moderator").notNull().default(false),
+    administrator: boolean("administrator").notNull().default(false),
 });
 
-export const userstatistic = sqliteTable("userstatistic", {
-    id: integer().primaryKey(),
-    idUser: integer().notNull().references(() => user.id),
-    readingStatus: real(),
-    contentType: real(),
-    genres: real(),
+export const userstatistic = pgTable("userstatistic", {
+    id: integer("id").primaryKey(),
+    idUser: integer("id_user").notNull().references(() => user.id),
+    readingStatus: real("reading_status"),
+    contentType: real("content_type"),
+    genres: real("genres"),
 });
 
 export const schema = {
@@ -127,3 +129,4 @@ export const schema = {
     userpermission,
     userstatistic,
 };
+

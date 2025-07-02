@@ -1,8 +1,56 @@
 services:
-  toonka_web:
+  toonka_migrate:
     build: .
+    container_name: toonka_migrate
+    command: sh -c "npm run drizzle:migrate"
+    depends_on:
+      toonka_db:
+        condition: service_healthy
     volumes:
       - ./:/app
+      - /app/node_modules
+
+  toonka_web:
+    build: .
+    restart: always
+    container_name: toonka_web
+    tty: true
+    volumes:
+      - ./:/app
+      - /app/node_modules
     ports:
       - 3000:3000
-    tty: true
+    depends_on:
+      toonka_migrate:
+        condition: service_completed_successfully
+
+  toonka_adminer:
+    image: adminer:latest
+    restart: always
+    container_name: toonka_adminer
+    depends_on:
+      toonka_db:
+        condition: service_healthy
+    ports:
+      - 3001:8080
+    environment:
+      ADMINER_DEFAULT_SERVER: toonka_db
+
+  toonka_db:
+    image: postgres:latest
+    restart: always
+    container_name: toonka_db
+    volumes:
+      - toonka_db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: toonka
+      POSTGRES_USER: toonka
+      POSTGRES_PASSWORD: toonka
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  toonka_db:
