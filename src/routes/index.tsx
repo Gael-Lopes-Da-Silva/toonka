@@ -1,14 +1,12 @@
 import { component$ } from "@builder.io/qwik";
-import { DocumentHead } from "@builder.io/qwik-city";
-// import { db } from "../../drizzle/db";
-// import { user } from "../../drizzle/schema";
+import type { DocumentHead } from "@builder.io/qwik-city";
 
 export const head: DocumentHead = {
-    title: "Toonka | Reading simplified",
+    title: "Welcome to Qwik",
     meta: [
         {
             name: "description",
-            content: "A cross-site book traker and bookmark holder",
+            content: "Qwik site description",
         },
     ],
 };
