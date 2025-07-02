@@ -63,13 +63,11 @@ export default component$(() => {
       <Modal
         isOpen={loginModal.value}
         onClose$={() => (loginModal.value = false)}
-        title="Login"
       ></Modal>
 
       <Modal
         isOpen={registerModal.value}
         onClose$={() => (registerModal.value = false)}
-        title="Register"
       ></Modal>
     </>
   );

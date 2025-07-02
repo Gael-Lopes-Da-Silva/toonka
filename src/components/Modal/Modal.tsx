@@ -47,10 +47,10 @@ export const Modal = component$<ModalProps>(({ isOpen, onClose$, title }) => {
       {isOpen && (
         <dialog
           ref={dialogRef}
-          class="fixed inset-0 z-50 m-auto rounded-lg border border-solid border-gray-300 bg-white"
+          class="fixed inset-0 z-50 m-auto rounded-lg border border-solid border-gray-300 bg-white shadow-md"
         >
-          <header class="flex gap-5 border-b border-solid border-gray-300 p-4">
-            {title && <h2 class="text-xl font-semibold">{title}</h2>}
+          {title && <header class="flex gap-5 border-b border-solid border-gray-300 p-4">
+            <h2 class="text-xl font-semibold">{title}</h2>
             <button class="ml-auto hover:cursor-pointer" onClick$={onClose$}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -67,7 +67,7 @@ export const Modal = component$<ModalProps>(({ isOpen, onClose$, title }) => {
                 <path d="m6 6 12 12"></path>
               </svg>
             </button>
-          </header>
+          </header>}
           <main class="p-5">
             <Slot />
           </main>
