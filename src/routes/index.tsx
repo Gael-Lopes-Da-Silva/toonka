@@ -36,15 +36,15 @@ export const useRegister = routeAction$(
         token: token
       })
 
-      return { success: true, message: "" }
+      return { success: true, message: "User successfully registered" }
     } catch (error) {
-      return { success: false, message: "" }
+      return { success: false, message: "An error occured" }
     }
   },
   zod$({
-    username: z.string().min(2, { message: "" }),
-    email: z.string().email({ message: "" }),
-    password: z.string().min(8, { message: "" })
+    username: z.string().min(2, { message: "Invalid username" }),
+    email: z.string().email({ message: "Invalid email" }),
+    password: z.string().min(8, { message: "Invalid password" })
   })
 )
 
@@ -77,6 +77,9 @@ export default component$(() => {
 
   const registerAction = useRegister()
   const loginAction = useLogin()
+
+  const registerAlert = useSignal(true)
+  const loginAlert = useSignal(true)
 
   return (
     <>
@@ -160,6 +163,39 @@ export default component$(() => {
       </Modal>
 
       <Modal isOpen={registerModal.value} title="Register" onClose$={() => (registerModal.value = false)}>
+        {(registerAction.value?.fieldErrors || registerAction.value?.success === false) && (
+          <Alert
+            show={registerAlert.value}
+            type="error"
+            message={
+              <>
+                {registerAction.value?.message && <p>{registerAction.value.message}</p>}
+                {registerAction.value?.fieldErrors && (
+                  <ul class="list-disc pl-5">
+                    {registerAction.value.fieldErrors.username && <li>{registerAction.value.fieldErrors.username}</li>}
+                    {registerAction.value.fieldErrors.email && <li>{registerAction.value.fieldErrors.email}</li>}
+                    {registerAction.value.fieldErrors.password && <li>{registerAction.value.fieldErrors.password}</li>}
+                  </ul>
+                )}
+              </>
+            }
+            onClose$={() => {
+              registerAlert.value = false
+            }}
+          />
+        )}
+
+        {registerAction.value?.success && (
+          <Alert
+            show={registerAlert.value}
+            type="success"
+            message={<p>{registerAction.value.message}</p>}
+            onClose$={() => {
+              registerAlert.value = false
+            }}
+          />
+        )}
+
         <Form class="flex flex-col" action={registerAction}>
           <div class="mb-6">
             <InputText

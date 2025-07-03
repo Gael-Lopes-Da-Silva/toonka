@@ -1,4 +1,4 @@
-import { component$ } from '@builder.io/qwik';
+import { component$ } from "@builder.io/qwik"
 import type { PropFunction, JSXOutput } from "@builder.io/qwik"
 
 export interface AlertProps {
@@ -12,13 +12,15 @@ export const Alert = component$<AlertProps>(({ show, message, type, onClose$ }) 
   return (
     <>
       {show && (
-        <div class={[
-          "flex items-center p-4 border border-solid rounded-lg",
-          type === "error" ? "border-red-400 bg-red-300" : "",
-          type === "warning" ? "border-orange-400 bg-orange-300" : "",
-          type === "success" ? "border-green-400 bg-green-300" : "",
-          type === "info" ? "border-blue-400 bg-blue-300" : "",
-        ].join(" ")}>
+        <div
+          class={[
+            "flex items-center rounded-lg border border-solid p-4",
+            type === "error" ? "border-red-400 bg-red-300" : "",
+            type === "warning" ? "border-orange-400 bg-orange-300" : "",
+            type === "success" ? "border-green-400 bg-green-300" : "",
+            type === "info" ? "border-blue-400 bg-blue-300" : ""
+          ].join(" ")}
+        >
           {message}
           <button class="ml-auto hover:cursor-pointer" onClick$={onClose$}>
             <svg
@@ -39,5 +41,5 @@ export const Alert = component$<AlertProps>(({ show, message, type, onClose$ }) 
         </div>
       )}
     </>
-  );
-});
+  )
+})
