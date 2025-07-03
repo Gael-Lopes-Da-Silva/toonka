@@ -31,12 +31,16 @@
     "qwik": "qwik"
   },
   "devDependencies": {
+    "@auth/drizzle-adapter": "^1.10.0",
+    "@auth/qwik": "0.5.4",
     "@builder.io/qwik": "^1.14.1",
     "@builder.io/qwik-city": "^1.14.1",
     "@eslint/js": "latest",
     "@tailwindcss/vite": "^4.0.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "20.14.11",
     "@types/pg": "^8.15.4",
+    "bcryptjs": "^3.0.2",
     "dotenv": "^17.0.1",
     "drizzle-kit": "^0.30.3",
     "drizzle-orm": "^0.39.0",

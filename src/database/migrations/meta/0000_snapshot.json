@@ -1,5 +1,5 @@
 {
-  "id": "e99ad849-86f9-4354-a799-b77a3344d632",
+  "id": "b32bb0ff-8a6f-4ba1-bff8-b1287c01f18f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -252,8 +252,12 @@
           "tableFrom": "book_chapter",
           "tableTo": "book",
           "schemaTo": "toonka",
-          "columnsFrom": ["book_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "book_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -310,8 +314,12 @@
           "tableFrom": "book_cover",
           "tableTo": "book",
           "schemaTo": "toonka",
-          "columnsFrom": ["book_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "book_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -321,7 +329,9 @@
         "book_cover_link_unique": {
           "name": "book_cover_link_unique",
           "nullsNotDistinct": false,
-          "columns": ["link"]
+          "columns": [
+            "link"
+          ]
         }
       },
       "policies": {},
@@ -374,8 +384,12 @@
           "tableFrom": "book_name",
           "tableTo": "book",
           "schemaTo": "toonka",
-          "columnsFrom": ["book_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "book_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -385,7 +399,9 @@
         "book_name_name_unique": {
           "name": "book_name_name_unique",
           "nullsNotDistinct": false,
-          "columns": ["name"]
+          "columns": [
+            "name"
+          ]
         }
       },
       "policies": {},
@@ -450,8 +466,12 @@
           "tableFrom": "book_provider",
           "tableTo": "book",
           "schemaTo": "toonka",
-          "columnsFrom": ["book_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "book_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -502,8 +522,12 @@
           "tableFrom": "book_statistic",
           "tableTo": "book",
           "schemaTo": "toonka",
-          "columnsFrom": ["book_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "book_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -603,8 +627,12 @@
           "tableFrom": "book_tag",
           "tableTo": "book",
           "schemaTo": "toonka",
-          "columnsFrom": ["book_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "book_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -642,6 +670,18 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "verified_at": {
+          "name": "verified_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -716,12 +756,23 @@
         "user_username_unique": {
           "name": "user_username_unique",
           "nullsNotDistinct": false,
-          "columns": ["username"]
+          "columns": [
+            "username"
+          ]
         },
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": [
+            "email"
+          ]
+        },
+        "user_token_unique": {
+          "name": "user_token_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "token"
+          ]
         }
       },
       "policies": {},
@@ -939,8 +990,12 @@
           "tableFrom": "user_bookmark",
           "tableTo": "user",
           "schemaTo": "toonka",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -949,8 +1004,12 @@
           "tableFrom": "user_bookmark",
           "tableTo": "book",
           "schemaTo": "toonka",
-          "columnsFrom": ["book_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "book_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -959,8 +1018,12 @@
           "tableFrom": "user_bookmark",
           "tableTo": "book_chapter",
           "schemaTo": "toonka",
-          "columnsFrom": ["chapter_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "chapter_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1174,8 +1237,12 @@
           "tableFrom": "user_comment",
           "tableTo": "user",
           "schemaTo": "toonka",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1184,8 +1251,12 @@
           "tableFrom": "user_comment",
           "tableTo": "book",
           "schemaTo": "toonka",
-          "columnsFrom": ["book_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "book_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1278,8 +1349,12 @@
           "tableFrom": "user_excluded_tag",
           "tableTo": "user",
           "schemaTo": "toonka",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1288,8 +1363,12 @@
           "tableFrom": "user_excluded_tag",
           "tableTo": "book_tag",
           "schemaTo": "toonka",
-          "columnsFrom": ["tag_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1361,8 +1440,12 @@
           "tableFrom": "user_permission",
           "tableTo": "user",
           "schemaTo": "toonka",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1431,8 +1514,12 @@
           "tableFrom": "user_statistic",
           "tableTo": "user",
           "schemaTo": "toonka",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1448,12 +1535,22 @@
     "toonka.book_type": {
       "name": "book_type",
       "schema": "toonka",
-      "values": ["manga", "manhua", "manhwa"]
+      "values": [
+        "manga",
+        "manhua",
+        "manhwa"
+      ]
     },
     "toonka.user_bookmark_status": {
       "name": "user_bookmark_status",
       "schema": "toonka",
-      "values": ["reading", "plan_to_read", "on_hold", "dropped", "completed"]
+      "values": [
+        "reading",
+        "plan_to_read",
+        "on_hold",
+        "dropped",
+        "completed"
+      ]
     }
   },
   "schemas": {

@@ -64,11 +64,14 @@ CREATE TABLE "toonka"."user" (
 	"username" text NOT NULL,
 	"email" text NOT NULL,
 	"password" text NOT NULL,
+	"token" text,
+	"verified_at" timestamp,
 	"created_at" timestamp DEFAULT now(),
 	"deleted_at" timestamp,
 	"modified_at" timestamp,
 	CONSTRAINT "user_username_unique" UNIQUE("username"),
-	CONSTRAINT "user_email_unique" UNIQUE("email")
+	CONSTRAINT "user_email_unique" UNIQUE("email"),
+	CONSTRAINT "user_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
 CREATE TABLE "toonka"."user_bookmark" (
