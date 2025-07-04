@@ -7,6 +7,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "dotenv": "^17.0.1",
+    "drizzle-orm": "^0.44.2",
+    "pg": "^8.16.3",
     "preact": "^10.25.3",
     "preact-iso": "^2.9.2",
     "preact-render-to-string": "^6.5.13"
@@ -14,6 +17,8 @@
   "devDependencies": {
     "@preact/preset-vite": "^2.9.3",
     "@tailwindcss/vite": "^4.1.11",
+    "@types/pg": "^8.15.4",
+    "drizzle-kit": "^0.31.4",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.8.3",
     "vite": "^6.0.4"
