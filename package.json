@@ -1,60 +1,21 @@
 {
-  "name": "toonka",
-  "description": "A bookmark keeper and a publication tracker.",
-  "engines": {
-    "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
-  },
-  "engines-annotation": "Mostly required by sharp which needs a Node-API v9 compatible runtime",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "qwik build",
-    "build.client": "vite build",
-    "build.preview": "vite build --ssr src/entry.preview.tsx",
-    "build.types": "tsc --incremental --noEmit",
-    "deploy": "echo 'Run \"npm run qwik add\" to install a server adapter'",
-    "dev": "vite --mode ssr",
-    "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
-    "drizzle:check": "drizzle-kit check",
-    "drizzle:generate": "drizzle-kit generate",
-    "drizzle:migrate": "drizzle-kit migrate",
-    "drizzle:pull": "drizzle-kit pull",
-    "drizzle:push": "drizzle-kit push",
-    "drizzle:studio": "drizzle-kit studio",
-    "drizzle:up": "drizzle-kit up",
-    "fmt": "prettier --write .",
-    "fmt.check": "prettier --check .",
-    "lint": "eslint \"src/**/*.ts*\"",
-    "postinstall": "drizzle-kit generate",
-    "preview": "qwik build preview && vite preview --open",
-    "start": "vite --host --mode ssr",
-    "qwik": "qwik"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "preact": "^10.25.3",
+    "preact-iso": "^2.9.2",
+    "preact-render-to-string": "^6.5.13"
   },
   "devDependencies": {
-    "@auth/drizzle-adapter": "^1.10.0",
-    "@auth/qwik": "0.5.4",
-    "@builder.io/qwik": "^1.14.1",
-    "@builder.io/qwik-city": "^1.14.1",
-    "@eslint/js": "latest",
-    "@tailwindcss/vite": "^4.0.0",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/node": "20.14.11",
-    "@types/pg": "^8.15.4",
-    "bcryptjs": "^3.0.2",
-    "dotenv": "^17.0.1",
-    "drizzle-kit": "^0.30.3",
-    "drizzle-orm": "^0.39.0",
-    "eslint": "9.25.1",
-    "eslint-plugin-qwik": "^1.14.1",
-    "globals": "16.0.0",
-    "pg": "^8.16.3",
-    "prettier": "3.3.3",
-    "prettier-plugin-tailwindcss": "^0.6.11",
-    "tailwindcss": "^4.0.0",
-    "typescript": "5.4.5",
-    "typescript-eslint": "8.26.1",
-    "undici": "*",
-    "vite": "5.3.5",
-    "vite-tsconfig-paths": "^4.2.1"
+    "@preact/preset-vite": "^2.9.3",
+    "@tailwindcss/vite": "^4.1.11",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.8.3",
+    "vite": "^6.0.4"
   }
 }

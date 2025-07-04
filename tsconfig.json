@@ -1,24 +1,26 @@
 {
   "compilerOptions": {
-    "allowJs": true,
-    "target": "ES2017",
-    "module": "ES2022",
-    "lib": ["es2022", "DOM", "WebWorker", "DOM.Iterable"],
-    "jsx": "react-jsx",
-    "jsxImportSource": "@builder.io/qwik",
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "moduleResolution": "Bundler",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "incremental": true,
-    "isolatedModules": true,
-    "outDir": "tmp",
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    /* Preact Config */
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "skipLibCheck": true,
     "paths": {
-      "~/*": ["./src/*"]
+      "react": [
+        "./node_modules/preact/compat/"
+      ],
+      "react-dom": [
+        "./node_modules/preact/compat/"
+      ]
     }
   },
-  "include": ["src", "./*.d.ts", "./*.config.ts"]
+  "include": [
+    "node_modules/vite/client.d.ts",
+    "**/*"
+  ]
 }
