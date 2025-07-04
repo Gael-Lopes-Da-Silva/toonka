@@ -1,3 +1,3 @@
 <script lang="ts">
-    import { schema } from "$lib/server/database"
+  import { schema } from "$lib/server/database"
 </script>
