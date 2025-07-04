@@ -1,7 +1,17 @@
 <script lang="ts">
-  import { tick } from "svelte"
+  import { tick, type Snippet } from "svelte"
 
-  let { onclose = () => {}, header = null, main, footer = null } = $props()
+  let {
+    onclose = () => {},
+    header = null,
+    main,
+    footer = null
+  }: {
+    onclose: () => void
+    header: Snippet | null
+    main: Snippet
+    footer: Snippet | null
+  } = $props()
 
   let id = $props.id()
 
