@@ -1,15 +1,38 @@
-# `create-preact`
+# sv
 
-<h2 align="center">
-  <img height="256" width="256" src="./src/assets/preact.svg">
-</h2>
+Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
-<h3 align="center">Get started using Preact and Vite!</h3>
+## Creating a project
 
-## Getting Started
+If you're seeing this, you've probably already done this step. Congrats!
 
--   `npm run dev` - Starts a dev server at http://localhost:5173/
+```bash
+# create a new project in the current directory
+npx sv create
 
--   `npm run build` - Builds for production, emitting to `dist/`. Prerenders all found routes in app to static HTML
+# create a new project in my-app
+npx sv create my-app
+```
 
--   `npm run preview` - Starts a server at http://localhost:4173/ to test production build locally
+## Developing
+
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+
+```bash
+npm run dev
+
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
+
+## Building
+
+To create a production version of your app:
+
+```bash
+npm run build
+```
+
+You can preview the production build with `npm run preview`.
+
+> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
