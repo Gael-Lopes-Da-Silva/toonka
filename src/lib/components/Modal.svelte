@@ -3,14 +3,14 @@
 
   let {
     onclose = () => {},
-    header = null,
     main,
-    footer = null
+    header,
+    footer
   }: {
     onclose: () => void
-    header: Snippet | null
     main: Snippet
-    footer: Snippet | null
+    header?: Snippet
+    footer?: Snippet
   } = $props()
 
   let id = $props.id()
@@ -36,7 +36,7 @@
     modalStack.push(modalRef)
 
     tick().then(() => {
-      document.addEventListener("click", handleClick, true)
+      document.addEventListener("mousedown", handleClick, true)
       document.addEventListener("keydown", handleKeydown)
     })
 
@@ -45,7 +45,7 @@
       if (index !== -1) {
         modalStack.splice(index, 1)
       }
-      document.removeEventListener("click", handleClick, true)
+      document.removeEventListener("mousedown", handleClick, true)
       document.removeEventListener("keydown", handleKeydown)
     }
   })
@@ -54,7 +54,7 @@
 <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
   <div
     {id}
-    class="bg-white border border-solid border-gray-300 rounded-lg shadow-lg min-w-[300px] min-h-[200px] max-w-full max-h-full overflow-auto"
+    class="bg-white border border-solid border-stone-300 rounded-lg shadow-md min-w-[200px] min-h-[150px] max-w-full max-h-full overflow-auto"
     role="dialog"
     aria-modal="true"
     tabindex="-1"
