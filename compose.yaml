@@ -16,7 +16,7 @@ services:
     restart: always
     container_name: toonka_db
     volumes:
-      - toonka_db:/var/lib/postgresql/data
+      - toonka_data:/var/lib/postgresql/data
     ports:
       - 3002:5432
     environment:
@@ -30,4 +30,5 @@ services:
       retries: 5
 
 volumes:
-  toonka_db:
+  toonka_data:
+    name: toonka_data

@@ -1,8 +1,43 @@
 import { db, schema } from "$lib/server/database"
 import { fail, redirect } from "@sveltejs/kit"
 import { randomBytes, scryptSync, timingSafeEqual } from "crypto"
+import { eq } from "drizzle-orm"
+
+export const load = async ({ url }) => {
+  const token = url.searchParams.get("token")
+  if (token) {
+    if (token.split(":")[0] == "ac") {
+      const user = await db.query.user.findFirst({
+        where: (user, { eq }) => eq(user.token, token)
+      })
+
+      if (!user) {
+        throw redirect(303, "/")
+      }
+
+      await db.update(schema.user).set({ token: null }).where(eq(schema.user.token, token))
+
+      return { from: "load", type: "success", message: "User account confirmed", loginModal: true }
+    } else if (token.split(":")[0] == "rp") {
+      // TODO: check password reset
+    } else {
+      throw redirect(303, "/")
+    }
+  }
+}
 
 export const actions = {
+  logout: async ({ cookies }) => {
+    cookies.set("session", "", {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 0
+    })
+
+    throw redirect(200, "/")
+  },
   register: async ({ request }) => {
     const data = await request.formData()
 

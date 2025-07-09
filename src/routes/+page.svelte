@@ -1,11 +1,18 @@
 <script lang="ts">
   import { enhance } from "$app/forms"
   import { Alert, Modal, Input } from "$lib/components"
+  import { onMount } from "svelte"
 
-  let { form } = $props()
+  let { data, form } = $props()
 
   let loginModal = $state(false)
   let registerModal = $state(false)
+
+  onMount(() => {
+    if (data?.loginModal === true) {
+      loginModal = true
+    }
+  })
 </script>
 
 <header class="flex items-center justify-center w-full">
@@ -18,18 +25,25 @@
       <a class="text-stone-600 hover:text-stone-800 transition" href="#">contact</a>
     </div>
     <div class="flex items-center gap-5">
-      <button
-        class="text-stone-600 hover:text-stone-800 cursor-pointer transition"
-        onclick={() => (loginModal = true)}
-      >
-        Log in
-      </button>
-      <button
-        class="py-1 px-3 border border-solid border-stone-300 bg-stone-100 hover:bg-stone-200 rounded-lg cursor-pointer transition"
-        onclick={() => (registerModal = true)}
-      >
-        Register
-      </button>
+      {#if data.user}
+        <a
+          class="py-1 px-3 border border-solid border-stone-300 bg-stone-100 hover:bg-stone-200 rounded-lg cursor-pointer transition"
+          href="/dashboard">Go to dashboard</a
+        >
+      {:else}
+        <button
+          class="text-stone-600 hover:text-stone-800 cursor-pointer transition"
+          onclick={() => (loginModal = true)}
+        >
+          Log in
+        </button>
+        <button
+          class="py-1 px-3 border border-solid border-stone-300 bg-stone-100 hover:bg-stone-200 rounded-lg cursor-pointer transition"
+          onclick={() => (registerModal = true)}
+        >
+          Register
+        </button>
+      {/if}
     </div>
   </div>
 </header>
@@ -38,10 +52,10 @@
   <Modal onclose={() => (loginModal = false)}>
     {#snippet main()}
       <form class="flex flex-col p-6" action="?/login" method="POST" use:enhance>
-        {#if form?.from && form?.from == "login"}
+        {#if form?.from === "login" || data?.from === "load"}
           <div class="mb-6">
-            <Alert type={form.type as "error" | "success" | "warning" | "info"}>
-              {form.message}
+            <Alert type={(form?.type || data?.type) as "error" | "success" | "warning" | "info"}>
+              {form?.message || data?.message}
             </Alert>
           </div>
         {/if}
@@ -98,7 +112,7 @@
   <Modal onclose={() => (registerModal = false)}>
     {#snippet main()}
       <form class="flex flex-col p-6" action="?/register" method="POST" use:enhance>
-        {#if form?.from && form?.from == "register"}
+        {#if form?.from === "register"}
           <div class="mb-6">
             <Alert type={form.type as "error" | "success" | "warning" | "info"}>
               {form.message}
