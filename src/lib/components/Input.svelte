@@ -41,7 +41,7 @@
   let id = $props.id()
 
   function getInputClass() {
-    return `block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 transition hover:bg-gray-100 focus:ring-4 focus:ring-blue-300 focus:outline-none ${icon ? "ps-10" : ""}`
+    return `block w-full rounded-lg border-4 border-dashed border-black bg-gray-50 p-2.5 text-sm text-black placeholder-stone-500 transition hover:bg-gray-100 focus:ring-4 focus:ring-blue-300 focus:outline-none ${icon ? "ps-10" : ""}`
   }
 </script>
 
@@ -73,14 +73,14 @@
   </div>
 {:else if ["submit", "button"].includes(type)}
   <input
-    class="w-full cursor-pointer rounded-lg bg-blue-600 px-5 py-2.5 text-center text-sm font-medium text-white transition hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 focus:outline-none"
+    class="w-full cursor-pointer rounded-lg bg-blue-600 border-4 border-dashed border-black px-5 py-2.5 text-center text-sm font-medium text-white transition hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 focus:outline-none"
     {type}
     {value}
   />
 {:else if ["checkbox", "radio"].includes(type)}
   <div class="flex items-center">
     <input
-      class="h-4 w-4 shrink-0 appearance-none rounded-sm border border-solid border-gray-300 bg-gray-50 transition checked:bg-blue-600 focus:ring-4 focus:ring-blue-300 focus:outline-none"
+      class="h-5 w-5 shrink-0 appearance-none rounded-sm border-4 border-dashed border-black bg-gray-50 transition checked:bg-blue-600 focus:ring-4 focus:ring-blue-300 focus:outline-none"
       {type}
       {id}
       {name}

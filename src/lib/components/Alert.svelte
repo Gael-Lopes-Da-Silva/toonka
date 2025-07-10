@@ -11,13 +11,13 @@
 
   function getDivClass() {
     const typeClass = {
-      error: "border-red-400 bg-red-300",
-      warning: "border-orange-400 bg-orange-300",
-      success: "border-green-400 bg-green-300",
-      info: "border-blue-400 bg-blue-300"
+      error: "bg-red-300",
+      warning: "bg-orange-300",
+      success: "bg-green-300",
+      info: "bg-blue-300"
     }[type]
 
-    return `flex items-center rounded-lg text-sm p-4 border border-solid ${typeClass}`
+    return `flex items-center rounded-lg text-sm p-4 border-4 border-dashed border-black ${typeClass}`
   }
 </script>
 

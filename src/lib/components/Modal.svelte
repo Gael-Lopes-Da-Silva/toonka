@@ -54,7 +54,7 @@
 <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
   <div
     {id}
-    class="bg-white border border-solid border-stone-300 rounded-lg shadow-md min-w-[200px] min-h-[150px] max-w-full max-h-full overflow-auto"
+    class="bg-white border-5 border-dashed border-black rounded-lg shadow-md min-w-[200px] min-h-[150px] max-w-full max-h-full overflow-auto"
     role="dialog"
     aria-modal="true"
     tabindex="-1"

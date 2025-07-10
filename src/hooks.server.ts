@@ -15,8 +15,7 @@ export const handle = async ({ event, resolve }) => {
   }
 
   const privatePaths = ["/dashboard"]
-  const loggedIn = Boolean(event.locals.user)
-  if (!loggedIn && privatePaths.includes(event.url.pathname)) {
+  if (!Boolean(event.locals.user) && privatePaths.includes(event.url.pathname)) {
     return Response.redirect(new URL("/", event.url), 303)
   }
 

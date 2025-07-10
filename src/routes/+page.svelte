@@ -3,42 +3,43 @@
   import { Alert, Modal, Input } from "$lib/components"
   import { onMount } from "svelte"
 
+  import logo from "$lib/assets/logo.svg"
+
   let { data, form } = $props()
 
   let loginModal = $state(false)
   let registerModal = $state(false)
 
   onMount(() => {
-    if (data?.loginModal === true) {
+    if (data?.load?.loginModal) {
       loginModal = true
     }
   })
 </script>
 
 <header class="flex items-center justify-center w-full">
-  <div
-    class="flex gap-10 p-2 m-4 border border-solid border-stone-300 bg-white rounded-xl shadow-md"
-  >
-    <div class="flex items-center gap-5">
-      <a class="text-stone-600 hover:text-stone-800 transition" href="#">features</a>
-      <a class="text-stone-600 hover:text-stone-800 transition" href="#">search</a>
-      <a class="text-stone-600 hover:text-stone-800 transition" href="#">contact</a>
+  <div class="flex gap-10 p-2 m-4 border-5 border-dashed rounded-lg border-black bg-white">
+    <div class="flex items-center gap-5 px-2">
+      <a href="/"><img class="h-8" src={logo} alt="" /></a>
+      <a class="border-dashed border-black hover:border-b-4 transition" href="#">features</a>
+      <a class="border-dashed border-black hover:border-b-4 transition" href="#">search</a>
+      <a class="border-dashed border-black hover:border-b-4 transition" href="#">contact</a>
     </div>
     <div class="flex items-center gap-5">
       {#if data.user}
         <a
-          class="py-1 px-3 border border-solid border-stone-300 bg-stone-100 hover:bg-stone-200 rounded-lg cursor-pointer transition"
+          class="py-1 px-3 border-4 border-dashed border-black bg-stone-100 hover:bg-stone-200 rounded-lg cursor-pointer transition"
           href="/dashboard">Go to dashboard</a
         >
       {:else}
         <button
-          class="text-stone-600 hover:text-stone-800 cursor-pointer transition"
+          class="border-dashed border-black hover:border-b-4 cursor-pointer transition"
           onclick={() => (loginModal = true)}
         >
           Log in
         </button>
         <button
-          class="py-1 px-3 border border-solid border-stone-300 bg-stone-100 hover:bg-stone-200 rounded-lg cursor-pointer transition"
+          class="py-1 px-3 border-4 border-dashed border-black bg-stone-100 hover:bg-stone-200 rounded-lg cursor-pointer transition"
           onclick={() => (registerModal = true)}
         >
           Register
@@ -52,10 +53,16 @@
   <Modal onclose={() => (loginModal = false)}>
     {#snippet main()}
       <form class="flex flex-col p-6" action="?/login" method="POST" use:enhance>
-        {#if form?.from === "login" || data?.from === "load"}
+        {#if form?.login || data?.load}
           <div class="mb-6">
-            <Alert type={(form?.type || data?.type) as "error" | "success" | "warning" | "info"}>
-              {form?.message || data?.message}
+            <Alert
+              type={(form?.login?.type || data?.load?.type) as
+                | "error"
+                | "success"
+                | "warning"
+                | "info"}
+            >
+              {form?.login?.message || data?.load?.message}
             </Alert>
           </div>
         {/if}
@@ -112,10 +119,10 @@
   <Modal onclose={() => (registerModal = false)}>
     {#snippet main()}
       <form class="flex flex-col p-6" action="?/register" method="POST" use:enhance>
-        {#if form?.from === "register"}
+        {#if form?.register}
           <div class="mb-6">
-            <Alert type={form.type as "error" | "success" | "warning" | "info"}>
-              {form.message}
+            <Alert type={form.register.type as "error" | "success" | "warning" | "info"}>
+              {form.register.message}
             </Alert>
           </div>
         {/if}

@@ -17,7 +17,13 @@ export const load = async ({ url }) => {
 
       await db.update(schema.user).set({ token: null }).where(eq(schema.user.token, token))
 
-      return { from: "load", type: "success", message: "User account confirmed", loginModal: true }
+      return {
+        load: {
+          type: "success",
+          message: "User account confirmed",
+          loginModal: true
+        }
+      }
     } else if (token.split(":")[0] == "rp") {
       // TODO: check password reset
     } else {
@@ -47,9 +53,10 @@ export const actions = {
 
     if (!username || !email || !password) {
       return fail(400, {
-        from: "register",
-        type: "error",
-        message: "All fields are required"
+        register: {
+          type: "error",
+          message: "All fields are required"
+        }
       })
     }
 
@@ -59,9 +66,10 @@ export const actions = {
 
     if (alreadyExist) {
       return fail(400, {
-        from: "register",
-        type: "error",
-        message: "Email or username already used"
+        register: {
+          type: "error",
+          message: "Email or username already used"
+        }
       })
     }
 
@@ -80,9 +88,10 @@ export const actions = {
     // TODO: send confirmation link via mail
 
     return {
-      from: "register",
-      type: "success",
-      message: "Account successfully created. Check you mails!"
+      register: {
+        type: "success",
+        message: "Account successfully created. Check you mails!"
+      }
     }
   },
   login: async ({ request, cookies }) => {
@@ -93,9 +102,10 @@ export const actions = {
 
     if (!email || !password) {
       return fail(400, {
-        from: "login",
-        type: "error",
-        message: "All fields are required"
+        login: {
+          type: "error",
+          message: "All fields are required"
+        }
       })
     }
 
@@ -105,17 +115,19 @@ export const actions = {
 
     if (!user) {
       return fail(400, {
-        from: "login",
-        type: "error",
-        message: "Invalid credentials"
+        login: {
+          type: "error",
+          message: "Invalid credentials"
+        }
       })
     }
 
     if (user.token && user.token.split(":")[0] == "ac") {
       return fail(400, {
-        from: "login",
-        type: "error",
-        message: "Account not verified"
+        login: {
+          type: "error",
+          message: "Account not verified"
+        }
       })
     }
 
@@ -129,9 +141,10 @@ export const actions = {
 
     if (!match) {
       return fail(400, {
-        from: "login",
-        type: "error",
-        message: "Invalid credentials"
+        login: {
+          type: "error",
+          message: "Invalid credentials"
+        }
       })
     }
 
