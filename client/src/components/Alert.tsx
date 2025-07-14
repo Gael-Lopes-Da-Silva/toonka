@@ -9,10 +9,10 @@ export default function Alert(props: AlertProps) {
 	const id = useId();
 
 	const typeClass = {
-		error: "border-red-400 bg-red-300",
-		warning: "border-orange-400 bg-orange-300",
-		success: "border-green-400 bg-green-300",
-		info: "border-blue-400 bg-blue-300",
+		error: "border-red-500 bg-red-400 text-red-800",
+		warning: "border-orange-500 bg-orange-400 text-orange-800",
+		success: "border-green-500 bg-green-400 text-green-800",
+		info: "border-blue-500 bg-blue-400 text-blue-800",
 	};
 
 	return (

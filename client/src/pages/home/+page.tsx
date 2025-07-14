@@ -1,134 +1,13 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { db, schema } from "../../database";
-import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
 
 import { Modal, Input, Alert } from "../../components";
 
 export default function Home() {
-	const navigate = useNavigate();
-
 	const [loginModal, setLoginModal] = useState(false);
 	const [registerModal, setRegisterModal] = useState(false);
 
-	const [formData, setFormData] = useState(
-		{} as {
-			login?: {
-				type: string;
-				message: string;
-			};
-			register?: {
-				type: string;
-				message: string;
-			};
-		},
-	);
-
-	const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-
-		const data = new FormData(event.currentTarget);
-		const email = data.get("email") as string;
-		const password = data.get("password") as string;
-
-		const user = await db.query.user.findFirst({
-			where: (user, { eq }) => eq(user.email, email),
-		});
-
-		if (!user) {
-			setFormData({
-				login: {
-					type: "error",
-					message: "Invalid credentials",
-				},
-			});
-			return;
-		}
-
-		if (user.token && user.token.split(":")[0] === "ac") {
-			setFormData({
-				login: {
-					type: "error",
-					message: "Account not confirmed",
-				},
-			});
-			return;
-		}
-
-		const [salt, storedHash] = user.password.split(":");
-		const storedHashBuffer = Buffer.from(storedHash, "hex");
-
-		const currentHash = scryptSync(password, salt, 32);
-		const currentHashBuffer = Buffer.from(currentHash);
-
-		const match = timingSafeEqual(storedHashBuffer, currentHashBuffer);
-
-		if (!match) {
-			setFormData({
-				login: {
-					type: "error",
-					message: "Invalid credentials",
-				},
-			});
-			return;
-		}
-
-		const storage =
-			data.get("timeframe") === "on" ? localStorage : sessionStorage;
-
-		storage.setItem(
-			"authentification",
-			JSON.stringify({ id: user.id, loggedAt: Date.now() }),
-		);
-
-		navigate("/dashboard");
-		return;
-	};
-
-	const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-
-		const data = new FormData(event.currentTarget);
-		const username = data.get("username") as string;
-		const email = data.get("email") as string;
-		const password = data.get("password") as string;
-
-		const user = await db.query.user.findFirst({
-			where: (user, { eq, or }) =>
-				or(eq(user.email, email), eq(user.username, username)),
-		});
-
-		if (user) {
-			setFormData({
-				register: {
-					type: "error",
-					message: "Username or email already used",
-				},
-			});
-			return;
-		}
-
-		const salt = randomBytes(16).toString("hex");
-		const hash = scryptSync(password, salt, 32).toString("hex");
-		const token = "ac:" + randomBytes(32).toString("hex");
-
-		await db.insert(schema.user).values({
-			username: username,
-			email: email,
-			password: `${salt}:${hash}`,
-			token: token,
-		});
-
-		// TODO: send a confirmation mail
-
-		setFormData({
-			register: {
-				type: "success",
-				message: "Account created. Check your mails",
-			},
-		});
-		return;
-	};
+	const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {};
+	const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {};
 
 	return (
 		<>
@@ -153,22 +32,6 @@ export default function Home() {
 					main={
 						<>
 							<form className="flex flex-col p-6" onSubmit={handleLogin}>
-								{formData.login && (
-									<>
-										<Alert
-											type={
-												formData.login.type as
-													| "error"
-													| "warning"
-													| "success"
-													| "info"
-											}
-										>
-											{formData.login.message}
-										</Alert>
-									</>
-								)}
-
 								<div className="mb-6">
 									<Input
 										type="email"
@@ -238,22 +101,6 @@ export default function Home() {
 					main={
 						<>
 							<form className="flex flex-col p-6" onSubmit={handleRegister}>
-								{formData.register && (
-									<>
-										<Alert
-											type={
-												formData.register.type as
-													| "error"
-													| "warning"
-													| "success"
-													| "info"
-											}
-										>
-											{formData.register.message}
-										</Alert>
-									</>
-								)}
-
 								<div className="mb-6">
 									<Input
 										type="text"

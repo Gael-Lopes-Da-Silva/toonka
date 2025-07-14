@@ -119,15 +119,75 @@ router.put("/:id", async (request, response) => {
 			email: email ?? user.email,
 			password: password ?? user.password,
 			token: token ?? user.token,
-			// modifiedAt: Date.now(),
+			modifiedAt: new Date(),
 		})
 		.where(eq(schema.user.id, id));
+
+	response.status(200).json({
+		from: "user",
+		message: "User successfully updated",
+	});
+	return;
 });
 
-router.patch("/:id", (request, response) => {});
+router.patch("/:id", async (request, response) => {
+	const id = Number(request.params.id);
 
-router.delete("/:id", (request, response) => {});
+	const user = await db.query.user.findFirst({
+		where: (user, { eq, and, isNotNull }) =>
+			and(eq(user.id, id), isNotNull(user.deletedAt)),
+	});
 
-router.post("/login", (request, response) => {});
+	if (!user) {
+		response.status(404).json({
+			from: "user",
+			message: "Deleted user not found",
+		});
+	}
+
+	await db
+		.update(schema.user)
+		.set({
+			deletedAt: null,
+		})
+		.where(eq(schema.user.id, id));
+
+	response.status(200).json({
+		from: "user",
+		message: "User successfully restored",
+	});
+	return;
+});
+
+router.delete("/:id", async (request, response) => {
+	const id = Number(request.params.id);
+
+	const user = await db.query.user.findFirst({
+		where: (user, { eq, and, isNull }) =>
+			and(eq(user.id, id), isNull(user.deletedAt)),
+	});
+
+	if (!user) {
+		response.status(404).json({
+			from: "user",
+			message: "User not found",
+		});
+	}
+
+	await db
+		.update(schema.user)
+		.set({
+			deletedAt: new Date(),
+		})
+		.where(eq(schema.user.id, id));
+
+	response.status(200).json({
+		from: "user",
+		message: "User successfully deleted",
+	});
+	return;
+});
+
+router.post("/login", async (request, response) => {});
 
 export default router;
