@@ -2,9 +2,7 @@ import { useEffect, useId, useRef } from "react";
 
 type ModalProps = {
 	onClose: () => void;
-	header?: React.ReactNode;
-	main?: React.ReactNode;
-	footer?: React.ReactNode;
+	children: React.ReactNode;
 };
 
 export default function Modal(props: ModalProps) {
@@ -31,20 +29,18 @@ export default function Modal(props: ModalProps) {
 			document.removeEventListener("mousedown", handleClick, true);
 			document.removeEventListener("keydown", handleKeydown);
 		};
-	}, [props.onClose]);
+	}, []);
 
 	return (
 		<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
 			<div
-				id={id}
 				className="bg-white border border-stone-300 rounded-lg shadow-md min-w-[250px] min-h-[180px] max-w-full max-h-full overflow-auto"
+				id={id}
+				ref={modalRef}
 				role="dialog"
 				tabIndex={-1}
-				ref={modalRef}
 			>
-				{props.header && <header>{props.header}</header>}
-				<main>{props.main}</main>
-				{props.footer && <footer>{props.footer}</footer>}
+				{props.children}
 			</div>
 		</div>
 	);
