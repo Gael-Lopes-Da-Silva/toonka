@@ -1,13 +1,10 @@
 import { useState } from "react";
 
-import { Modal, Input, Alert, Tooltip, Dropdown } from "../../components";
-import { useToast } from "../../hooks/toast";
+import { Modal, Input } from "../../components/core";
 
 export default function Home() {
 	const [loginModal, setLoginModal] = useState(false);
 	const [registerModal, setRegisterModal] = useState(false);
-
-	const { addToast } = useToast();
 
 	const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {};
 	const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {};
@@ -187,8 +184,6 @@ export default function Home() {
 					</form>
 				</Modal>
 			)}
-
-			<button onClick={() => addToast("oskour", "error")}>oskour</button>
 		</>
 	);
 }

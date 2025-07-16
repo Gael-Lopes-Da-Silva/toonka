@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 
-import { Toast } from "../../components";
+import { Toast } from "../../components/core";
 
 export default function Layout() {
 	return (
