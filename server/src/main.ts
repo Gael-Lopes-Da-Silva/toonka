@@ -1,9 +1,8 @@
+import "dotenv/config";
+
 import cors from "cors";
 import express from "express";
-
 import { exit } from "process";
-
-import "dotenv/config";
 
 import BookRoute from "./routes/book.ts";
 import BookChapterRoute from "./routes/bookChapter.ts";
@@ -19,8 +18,8 @@ import UserExcludedTagRoute from "./routes/userExcludedTag.ts";
 import UserPermissionRoute from "./routes/userPermission.ts";
 import UserStatisticRoute from "./routes/userStatistic.ts";
 
-if (!process.env.API_PORT) {
-	console.error("API port not found in .env");
+if (!process.env.API_PORT || !process.env.API_SECRET) {
+	console.error("Missing entry in .env");
 	exit(1);
 }
 
