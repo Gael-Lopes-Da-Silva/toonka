@@ -5,13 +5,14 @@ import { eq } from "drizzle-orm";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 
-import { db, schema } from "../database/index.ts";
-import { Errors, type Error } from "../services/ErrorHandler.ts";
+import { db, schema } from "../database";
+import { authentification } from "../middlewares";
+import { Errors, type Error } from "../services/ErrorHandler";
 
 const router = Router();
 
 router.post("/", async (request, response) => {
-	const { username, email, password } = request.body;
+	const { username, email, password } = request.body ?? {};
 
 	const sendError = (status: number, error: Error) =>
 		response.status(status).json({
@@ -68,15 +69,15 @@ router.get("/", async (request, response) => {
 		createdAt,
 		deletedAt,
 		modifiedAt,
-	} = request.body;
+	} = request.body ?? {};
 
 	const users = await db.query.user.findMany({
 		where: (user, { and, eq, isNull }) => {
 			const conditions = [];
 
-			if (username) conditions.push(eq(user.username, username));
-			if (email) conditions.push(eq(user.email, email));
-			if (token) conditions.push(eq(user.token, token));
+			if (username) conditions.push(eq(user.username, username as string));
+			if (email) conditions.push(eq(user.email, email as string));
+			if (token) conditions.push(eq(user.token, token as string));
 
 			const filterNullable = (value: any, column: any) => {
 				if (value === undefined) return;
@@ -142,7 +143,7 @@ router.put("/:id", async (request, response) => {
 
 	if (!user) return sendError(404, Errors.USER_NOT_FOUND);
 
-	const { username, email, password, token } = request.body;
+	const { username, email, password, token } = request.body ?? {};
 
 	await db
 		.update(schema.user)
@@ -224,7 +225,7 @@ router.delete("/:id", async (request, response) => {
 });
 
 router.post("/login", async (request, response) => {
-	const { email, password } = request.body;
+	const { email, password } = request.body ?? {};
 
 	const sendError = (status: number, error: Error) =>
 		response.status(status).json({

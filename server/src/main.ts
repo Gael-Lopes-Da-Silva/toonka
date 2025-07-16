@@ -2,21 +2,22 @@ import "dotenv/config";
 
 import cors from "cors";
 import express from "express";
+import helmet from "helmet";
 import { exit } from "process";
 
-import BookRoute from "./routes/book.ts";
-import BookChapterRoute from "./routes/bookChapter.ts";
-import BookCoverRoute from "./routes/bookCover.ts";
-import BookNameRoute from "./routes/bookName.ts";
-import BookProviderRoute from "./routes/bookProvider.ts";
-import BookStatisticRoute from "./routes/bookStatistic.ts";
-import BookTagRoute from "./routes/bookTag.ts";
-import UserRoute from "./routes/user.ts";
-import UserBookmarkRoute from "./routes/userBookmark.ts";
-import UserCommentRoute from "./routes/userComment.ts";
-import UserExcludedTagRoute from "./routes/userExcludedTag.ts";
-import UserPermissionRoute from "./routes/userPermission.ts";
-import UserStatisticRoute from "./routes/userStatistic.ts";
+import BookRoute from "./routes/book";
+import BookChapterRoute from "./routes/bookChapter";
+import BookCoverRoute from "./routes/bookCover";
+import BookNameRoute from "./routes/bookName";
+import BookProviderRoute from "./routes/bookProvider";
+import BookStatisticRoute from "./routes/bookStatistic";
+import BookTagRoute from "./routes/bookTag";
+import UserRoute from "./routes/user";
+import UserBookmarkRoute from "./routes/userBookmark";
+import UserCommentRoute from "./routes/userComment";
+import UserExcludedTagRoute from "./routes/userExcludedTag";
+import UserPermissionRoute from "./routes/userPermission";
+import UserStatisticRoute from "./routes/userStatistic";
 
 if (!process.env.API_PORT || !process.env.API_SECRET) {
 	console.error("Missing entry in .env");
@@ -27,6 +28,7 @@ const PORT = process.env.API_PORT;
 
 const app = express();
 app.use(cors());
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded());
 
