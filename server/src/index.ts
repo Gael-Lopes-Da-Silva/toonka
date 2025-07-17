@@ -5,6 +5,9 @@ import express from "express";
 import helmet from "helmet";
 import { exit } from "process";
 
+import { errorSender } from "./middlewares";
+import { type Error } from "./services/ErrorHandler";
+
 import BookRoute from "./routes/book";
 import BookChapterRoute from "./routes/bookChapter";
 import BookCoverRoute from "./routes/bookCover";
@@ -24,11 +27,21 @@ if (!process.env.API_PORT || !process.env.API_SECRET) {
 	exit(1);
 }
 
+declare global {
+	namespace Express {
+		interface Request {
+			user: any;
+			sendError(status: number, error: Error): void;
+		}
+	}
+}
+
 const PORT = process.env.API_PORT;
 
 const app = express();
 app.use(cors());
 app.use(helmet());
+app.use(errorSender());
 app.use(express.json());
 app.use(express.urlencoded());
 

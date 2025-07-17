@@ -1,43 +1,40 @@
 import "dotenv/config";
 
 import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, or } from "drizzle-orm";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 
 import { db, schema } from "../database";
-import { authentification } from "../middlewares";
-import { Errors, type Error } from "../services/ErrorHandler";
+import { Errors } from "../services/ErrorHandler";
 
 const router = Router();
 
 router.post("/", async (request, response) => {
 	const { username, email, password } = request.body ?? {};
 
-	const sendError = (status: number, error: Error) =>
-		response.status(status).json({
-			from: "user",
-			error: error,
-		});
+	if (!username) return request.sendError(400, Errors.REQUIRED_USERNAME);
+	if (!email) return request.sendError(400, Errors.REQUIRED_EMAIL);
+	if (!password) return request.sendError(400, Errors.REQUIRED_PASSWORD);
 
-	if (!username) return sendError(400, Errors.USERNAME_NOT_PROVIDED);
-	if (!email) return sendError(400, Errors.EMAIL_NOT_PROVIDED);
-	if (!password) return sendError(400, Errors.PASSWORD_NOT_PROVIDED);
-
-	const user = await db.query.user.findFirst({
-		where: (user, { eq, or, and, isNull }) =>
-			and(
-				or(eq(user.email, email), eq(user.username, username)),
-				isNull(user.deletedAt),
-			),
-	});
+	const user = (
+		await db
+			.select()
+			.from(schema.user)
+			.where(
+				and(
+					or(eq(schema.user.email, email), eq(schema.user.username, username)),
+					isNull(schema.user.deletedAt),
+				),
+			)
+	)[0];
 
 	if (user)
-		return sendError(
+		return request.sendError(
 			400,
 			user.email === email
-				? Errors.EMAIL_ALREADY_USED
-				: Errors.USERNAME_ALREADY_USED,
+				? Errors.EMAIL_ALREADY_EXISTS
+				: Errors.USERNAME_ALREADY_EXISTS,
 		);
 
 	const salt = randomBytes(16).toString("hex");
@@ -45,17 +42,28 @@ router.post("/", async (request, response) => {
 
 	const token = "ac:" + randomBytes(32).toString("hex");
 
-	await db.insert(schema.user).values({
-		username: username,
-		email: email,
-		password: `${salt}:${hash}`,
-		token: token,
+	const userId = (
+		await db
+			.insert(schema.user)
+			.values({
+				username: username,
+				email: email,
+				password: `${salt}:${hash}`,
+				token: token,
+			})
+			.returning()
+	)[0].id;
+
+	await db.insert(schema.userPermission).values({
+		userId: userId,
+		member: true,
+		moderator: false,
+		administrator: false,
 	});
 
 	// TODO: send account confirmation mail
 
 	return response.status(200).json({
-		from: "user",
 		error: 0,
 	});
 });
@@ -71,31 +79,28 @@ router.get("/", async (request, response) => {
 		modifiedAt,
 	} = request.body ?? {};
 
-	const users = await db.query.user.findMany({
-		where: (user, { and, eq, isNull }) => {
-			const conditions = [];
+	const conditions = [];
+	if (username) conditions.push(eq(schema.user.username, username as string));
+	if (email) conditions.push(eq(schema.user.email, email as string));
+	if (token) conditions.push(eq(schema.user.token, token as string));
 
-			if (username) conditions.push(eq(user.username, username as string));
-			if (email) conditions.push(eq(user.email, email as string));
-			if (token) conditions.push(eq(user.token, token as string));
+	const filterNullable = (value: any, column: any) => {
+		if (value === undefined) return;
+		conditions.push(value === null ? isNull(column) : eq(column, value));
+	};
 
-			const filterNullable = (value: any, column: any) => {
-				if (value === undefined) return;
-				conditions.push(value === null ? isNull(column) : eq(column, value));
-			};
+	filterNullable(verifiedAt, schema.user.verifiedAt);
+	filterNullable(createdAt, schema.user.createdAt);
+	filterNullable(deletedAt, schema.user.deletedAt);
+	filterNullable(modifiedAt, schema.user.modifiedAt);
 
-			filterNullable(verifiedAt, user.verifiedAt);
-			filterNullable(createdAt, user.createdAt);
-			filterNullable(deletedAt, user.deletedAt);
-			filterNullable(modifiedAt, user.modifiedAt);
-
-			return and(...conditions);
-		},
-	});
+	const users = await db
+		.select()
+		.from(schema.user)
+		.where(and(...conditions));
 
 	return response.status(200).json({
-		from: "user",
-		users: users,
+		value: users,
 		error: 0,
 	});
 });
@@ -103,24 +108,16 @@ router.get("/", async (request, response) => {
 router.get("/:id", async (request, response) => {
 	const id = Number(request.params.id);
 
-	const sendError = (status: number, error: Error) =>
-		response.status(status).json({
-			from: "user",
-			error: error,
-		});
+	if (isNaN(id)) return request.sendError(400, Errors.INVALID_ID);
 
-	if (isNaN(id)) return sendError(400, Errors.INVALID_ID);
+	const user = (
+		await db.select().from(schema.user).where(eq(schema.user.id, id))
+	)[0];
 
-	const user = await db.query.user.findFirst({
-		where: (user, { eq, and, isNull }) =>
-			and(eq(user.id, id), isNull(user.deletedAt)),
-	});
-
-	if (!user) return sendError(404, Errors.USER_NOT_FOUND);
+	if (!user) return request.sendError(404, Errors.USER_NOT_FOUND);
 
 	return response.status(200).json({
-		from: "user",
-		user: user,
+		value: user,
 		error: 0,
 	});
 });
@@ -128,20 +125,16 @@ router.get("/:id", async (request, response) => {
 router.put("/:id", async (request, response) => {
 	const id = Number(request.params.id);
 
-	const sendError = (status: number, error: Error) =>
-		response.status(status).json({
-			from: "user",
-			error: error,
-		});
+	if (isNaN(id)) return request.sendError(400, Errors.INVALID_ID);
 
-	if (isNaN(id)) return sendError(400, Errors.INVALID_ID);
+	const user = (
+		await db
+			.select()
+			.from(schema.user)
+			.where(and(eq(schema.user.id, id), isNull(schema.user.deletedAt)))
+	)[0];
 
-	const user = await db.query.user.findFirst({
-		where: (user, { eq, and, isNull }) =>
-			and(eq(user.id, id), isNull(user.deletedAt)),
-	});
-
-	if (!user) return sendError(404, Errors.USER_NOT_FOUND);
+	if (!user) return request.sendError(404, Errors.USER_NOT_FOUND);
 
 	const { username, email, password, token } = request.body ?? {};
 
@@ -157,7 +150,6 @@ router.put("/:id", async (request, response) => {
 		.where(eq(schema.user.id, id));
 
 	return response.status(200).json({
-		from: "user",
 		error: 0,
 	});
 });
@@ -165,20 +157,16 @@ router.put("/:id", async (request, response) => {
 router.patch("/:id", async (request, response) => {
 	const id = Number(request.params.id);
 
-	const sendError = (status: number, error: Error) =>
-		response.status(status).json({
-			from: "user",
-			error: error,
-		});
+	if (isNaN(id)) return request.sendError(400, Errors.INVALID_ID);
 
-	if (isNaN(id)) return sendError(400, Errors.INVALID_ID);
+	const user = (
+		await db
+			.select()
+			.from(schema.user)
+			.where(and(eq(schema.user.id, id), isNotNull(schema.user.deletedAt)))
+	)[0];
 
-	const user = await db.query.user.findFirst({
-		where: (user, { eq, and, isNotNull }) =>
-			and(eq(user.id, id), isNotNull(user.deletedAt)),
-	});
-
-	if (!user) return sendError(404, Errors.USER_NOT_FOUND);
+	if (!user) return request.sendError(404, Errors.USER_NOT_FOUND);
 
 	await db
 		.update(schema.user)
@@ -188,28 +176,22 @@ router.patch("/:id", async (request, response) => {
 		.where(eq(schema.user.id, id));
 
 	return response.status(200).json({
-		from: "user",
 		error: 0,
 	});
 });
 
 router.delete("/:id", async (request, response) => {
 	const id = Number(request.params.id);
+	if (isNaN(id)) return request.sendError(400, Errors.INVALID_ID);
 
-	const sendError = (status: number, error: Error) =>
-		response.status(status).json({
-			from: "user",
-			error: error,
-		});
+	const user = (
+		await db
+			.select()
+			.from(schema.user)
+			.where(and(eq(schema.user.id, id), isNull(schema.user.deletedAt)))
+	)[0];
 
-	if (isNaN(id)) return sendError(400, Errors.INVALID_ID);
-
-	const user = await db.query.user.findFirst({
-		where: (user, { eq, and, isNull }) =>
-			and(eq(user.id, id), isNull(user.deletedAt)),
-	});
-
-	if (!user) return sendError(404, Errors.USER_NOT_FOUND);
+	if (!user) return request.sendError(404, Errors.USER_NOT_FOUND);
 
 	await db
 		.update(schema.user)
@@ -219,7 +201,6 @@ router.delete("/:id", async (request, response) => {
 		.where(eq(schema.user.id, id));
 
 	return response.status(200).json({
-		from: "user",
 		error: 0,
 	});
 });
@@ -227,28 +208,25 @@ router.delete("/:id", async (request, response) => {
 router.post("/login", async (request, response) => {
 	const { email, password } = request.body ?? {};
 
-	const sendError = (status: number, error: Error) =>
-		response.status(status).json({
-			from: "user",
-			error: error,
-		});
+	if (!email) return request.sendError(400, Errors.REQUIRED_EMAIL);
+	if (!password) return request.sendError(400, Errors.REQUIRED_PASSWORD);
 
-	if (!email) return sendError(400, Errors.EMAIL_NOT_PROVIDED);
-	if (!password) return sendError(400, Errors.PASSWORD_NOT_PROVIDED);
+	const user = (
+		await db
+			.select()
+			.from(schema.user)
+			.where(and(eq(schema.user.email, email), isNull(schema.user.deletedAt)))
+	)[0];
 
-	const user = await db.query.user.findFirst({
-		where: (user, { eq, and, isNull }) =>
-			and(eq(user.email, email), isNull(user.deletedAt)),
-	});
-
-	if (!user) return sendError(401, Errors.INVALID_EMAIL);
+	if (!user) return request.sendError(401, Errors.INVALID_EMAIL);
 
 	if (user.token?.split(":")[0] == "ac")
-		return sendError(401, Errors.USER_NOT_CONFIRMED);
+		return request.sendError(401, Errors.USER_NOT_CONFIRMED);
 
 	const [salt, storedHash] = user.password.split(":");
 
-	if (!salt || !storedHash) return sendError(500, Errors.INTERNAL_ERROR);
+	if (!salt || !storedHash)
+		return request.sendError(500, Errors.INTERNAL_ERROR);
 
 	const storedHashBuffer = Buffer.from(storedHash, "hex");
 
@@ -257,9 +235,10 @@ router.post("/login", async (request, response) => {
 
 	const match = timingSafeEqual(storedHashBuffer, currentHashBuffer);
 
-	if (!match) return sendError(401, Errors.INVALID_PASSWORD);
+	if (!match) return request.sendError(401, Errors.INVALID_PASSWORD);
 
-	if (!process.env.API_SECRET) return sendError(500, Errors.INTERNAL_ERROR);
+	if (!process.env.API_SECRET)
+		return request.sendError(500, Errors.INTERNAL_ERROR);
 
 	const token = jwt.sign(
 		{
@@ -272,8 +251,7 @@ router.post("/login", async (request, response) => {
 	);
 
 	return response.status(200).json({
-		from: "user",
-		token: token,
+		value: token,
 		error: 0,
 	});
 });
