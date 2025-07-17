@@ -3,7 +3,7 @@ import "dotenv/config";
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
-import { Errors } from "../services/ErrorHandler";
+import { Errors } from "../../services/ErrorHandler";
 
 export default (request: Request, _response: Response, next: NextFunction) => {
 	const authorization = request.header("authorization");
@@ -11,7 +11,7 @@ export default (request: Request, _response: Response, next: NextFunction) => {
 	if (!authorization) return request.sendError(401, Errors.UNAUTHORIZED);
 
 	const token = authorization.startsWith("Bearer ")
-		? authorization.split(" ")[0]
+		? authorization.split(" ")[1]
 		: authorization;
 
 	if (!process.env.API_SECRET)

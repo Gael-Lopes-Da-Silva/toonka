@@ -1,5 +1,4 @@
 import {
-	pgSchema,
 	integer,
 	serial,
 	text,
@@ -8,21 +7,28 @@ import {
 	timestamp,
 	index,
 	uniqueIndex,
+	pgEnum,
+	pgTable,
 } from "drizzle-orm/pg-core";
 
-export const toonka = pgSchema("toonka");
+export const bookType = pgEnum("book_type", [
+	"manga",
+	"manhua",
+	"manhwa",
+	"novel",
+]);
+export type BookType = (typeof bookType.enumValues)[number];
 
-export const bookType = toonka.enum("book_type", ["manga", "manhua", "manhwa"]);
-
-export const userBookmarkStatus = toonka.enum("user_bookmark_status", [
+export const userBookmarkStatus = pgEnum("user_bookmark_status", [
 	"reading",
 	"plan_to_read",
 	"on_hold",
 	"dropped",
 	"completed",
 ]);
+export type UserBookmarkStatus = (typeof userBookmarkStatus.enumValues)[number];
 
-export const book = toonka.table(
+export const book = pgTable(
 	"book",
 	{
 		id: serial("id").primaryKey(),
@@ -34,16 +40,18 @@ export const book = toonka.table(
 		hidden: boolean("hidden").notNull().default(false),
 		createdAt: timestamp("created_at").defaultNow(),
 		deletedAt: timestamp("deleted_at"),
+		modifiedAt: timestamp("modified_at"),
 	},
 	(table) => [
 		index("book_type_idx").on(table.type),
 		index("book_publication_status_idx").on(table.publicationStatus),
 		index("book_deleted_at_idx").on(table.deletedAt),
 		index("book_created_at_idx").on(table.createdAt),
+		index("book_modified_at_idx").on(table.modifiedAt),
 	],
 );
 
-export const bookChapter = toonka.table(
+export const bookChapter = pgTable(
 	"book_chapter",
 	{
 		id: serial("id").primaryKey(),
@@ -55,16 +63,18 @@ export const bookChapter = toonka.table(
 		number: integer("number").notNull().default(0),
 		createdAt: timestamp("created_at").defaultNow(),
 		deletedAt: timestamp("deleted_at"),
+		modifiedAt: timestamp("modified_at"),
 	},
 	(table) => [
 		index("book_chapter_book_id_idx").on(table.bookId),
 		index("book_chapter_deleted_at_idx").on(table.deletedAt),
 		index("book_chapter_created_at_idx").on(table.createdAt),
+		index("book_chapter_modified_at_idx").on(table.modifiedAt),
 		index("book_chapter_number_idx").on(table.number),
 	],
 );
 
-export const bookCover = toonka.table(
+export const bookCover = pgTable(
 	"book_cover",
 	{
 		id: serial("id").primaryKey(),
@@ -76,7 +86,7 @@ export const bookCover = toonka.table(
 	(table) => [index("book_cover_book_id_idx").on(table.bookId)],
 );
 
-export const bookName = toonka.table(
+export const bookName = pgTable(
 	"book_name",
 	{
 		id: serial("id").primaryKey(),
@@ -88,7 +98,7 @@ export const bookName = toonka.table(
 	(table) => [index("book_name_book_id_idx").on(table.bookId)],
 );
 
-export const bookProvider = toonka.table(
+export const bookProvider = pgTable(
 	"book_provider",
 	{
 		id: serial("id").primaryKey(),
@@ -102,7 +112,7 @@ export const bookProvider = toonka.table(
 	(table) => [index("book_provider_book_id_idx").on(table.bookId)],
 );
 
-export const bookStatistic = toonka.table(
+export const bookStatistic = pgTable(
 	"book_statistic",
 	{
 		id: serial("id").primaryKey(),
@@ -113,7 +123,7 @@ export const bookStatistic = toonka.table(
 	(table) => [index("book_statistic_book_id_idx").on(table.bookId)],
 );
 
-export const bookTag = toonka.table(
+export const bookTag = pgTable(
 	"book_tag",
 	{
 		id: serial("id").primaryKey(),
@@ -123,15 +133,17 @@ export const bookTag = toonka.table(
 		name: text("name").notNull(),
 		createdAt: timestamp("created_at").defaultNow(),
 		deletedAt: timestamp("deleted_at"),
+		modifiedAt: timestamp("modified_at"),
 	},
 	(table) => [
 		index("book_tag_book_id_idx").on(table.bookId),
 		index("book_tag_deleted_at_idx").on(table.deletedAt),
 		index("book_tag_created_at_idx").on(table.createdAt),
+		index("book_tag_modified_at_idx").on(table.modifiedAt),
 	],
 );
 
-export const user = toonka.table(
+export const user = pgTable(
 	"user",
 	{
 		id: serial("id").primaryKey(),
@@ -151,7 +163,7 @@ export const user = toonka.table(
 	],
 );
 
-export const userBookmark = toonka.table(
+export const userBookmark = pgTable(
 	"user_bookmark",
 	{
 		id: serial("id").primaryKey(),
@@ -185,7 +197,7 @@ export const userBookmark = toonka.table(
 	],
 );
 
-export const userComment = toonka.table(
+export const userComment = pgTable(
 	"user_comment",
 	{
 		id: serial("id").primaryKey(),
@@ -215,7 +227,7 @@ export const userComment = toonka.table(
 	],
 );
 
-export const userExcludedTag = toonka.table(
+export const userExcludedTag = pgTable(
 	"user_excluded_tag",
 	{
 		id: serial("id").primaryKey(),
@@ -233,7 +245,7 @@ export const userExcludedTag = toonka.table(
 	],
 );
 
-export const userPermission = toonka.table(
+export const userPermission = pgTable(
 	"user_permission",
 	{
 		id: serial("id").primaryKey(),
@@ -243,11 +255,15 @@ export const userPermission = toonka.table(
 		member: boolean("member").notNull().default(true),
 		moderator: boolean("moderator").notNull().default(false),
 		administrator: boolean("administrator").notNull().default(false),
+		modifiedAt: timestamp("modified_at"),
 	},
-	(table) => [index("user_permission_user_id_idx").on(table.userId)],
+	(table) => [
+		index("user_permission_user_id_idx").on(table.userId),
+		index("user_permission_modified_at_idx").on(table.modifiedAt),
+	],
 );
 
-export const userStatistic = toonka.table(
+export const userStatistic = pgTable(
 	"user_statistic",
 	{
 		id: serial("id").primaryKey(),

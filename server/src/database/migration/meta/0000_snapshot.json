@@ -1,12 +1,12 @@
 {
-  "id": "2a3bd07c-224a-4971-a61b-489d53a49845",
+  "id": "8fe4a65a-bb79-43b7-b253-987a4037eef6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "toonka.book": {
+    "public.book": {
       "name": "book",
-      "schema": "toonka",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -17,7 +17,7 @@
         "type": {
           "name": "type",
           "type": "book_type",
-          "typeSchema": "toonka",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
@@ -61,6 +61,12 @@
         },
         "deleted_at": {
           "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "modified_at": {
+          "name": "modified_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
@@ -126,6 +132,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "book_modified_at_idx": {
+          "name": "book_modified_at_idx",
+          "columns": [
+            {
+              "expression": "modified_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -135,9 +156,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "toonka.book_chapter": {
+    "public.book_chapter": {
       "name": "book_chapter",
-      "schema": "toonka",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -179,6 +200,12 @@
         },
         "deleted_at": {
           "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "modified_at": {
+          "name": "modified_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
@@ -230,6 +257,21 @@
           "method": "btree",
           "with": {}
         },
+        "book_chapter_modified_at_idx": {
+          "name": "book_chapter_modified_at_idx",
+          "columns": [
+            {
+              "expression": "modified_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "book_chapter_number_idx": {
           "name": "book_chapter_number_idx",
           "columns": [
@@ -251,7 +293,6 @@
           "name": "book_chapter_book_id_book_id_fk",
           "tableFrom": "book_chapter",
           "tableTo": "book",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "book_id"
           ],
@@ -268,9 +309,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "toonka.book_cover": {
+    "public.book_cover": {
       "name": "book_cover",
-      "schema": "toonka",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -313,7 +354,6 @@
           "name": "book_cover_book_id_book_id_fk",
           "tableFrom": "book_cover",
           "tableTo": "book",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "book_id"
           ],
@@ -338,9 +378,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "toonka.book_name": {
+    "public.book_name": {
       "name": "book_name",
-      "schema": "toonka",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -383,7 +423,6 @@
           "name": "book_name_book_id_book_id_fk",
           "tableFrom": "book_name",
           "tableTo": "book",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "book_id"
           ],
@@ -408,9 +447,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "toonka.book_provider": {
+    "public.book_provider": {
       "name": "book_provider",
-      "schema": "toonka",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -465,7 +504,6 @@
           "name": "book_provider_book_id_book_id_fk",
           "tableFrom": "book_provider",
           "tableTo": "book",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "book_id"
           ],
@@ -482,9 +520,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "toonka.book_statistic": {
+    "public.book_statistic": {
       "name": "book_statistic",
-      "schema": "toonka",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -521,7 +559,6 @@
           "name": "book_statistic_book_id_book_id_fk",
           "tableFrom": "book_statistic",
           "tableTo": "book",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "book_id"
           ],
@@ -538,9 +575,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "toonka.book_tag": {
+    "public.book_tag": {
       "name": "book_tag",
-      "schema": "toonka",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -569,6 +606,12 @@
         },
         "deleted_at": {
           "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "modified_at": {
+          "name": "modified_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
@@ -619,6 +662,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "book_tag_modified_at_idx": {
+          "name": "book_tag_modified_at_idx",
+          "columns": [
+            {
+              "expression": "modified_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -626,7 +684,6 @@
           "name": "book_tag_book_id_book_id_fk",
           "tableFrom": "book_tag",
           "tableTo": "book",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "book_id"
           ],
@@ -643,9 +700,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "toonka.user": {
+    "public.user": {
       "name": "user",
-      "schema": "toonka",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -779,9 +836,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "toonka.user_bookmark": {
+    "public.user_bookmark": {
       "name": "user_bookmark",
-      "schema": "toonka",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -810,7 +867,7 @@
         "status": {
           "name": "status",
           "type": "user_bookmark_status",
-          "typeSchema": "toonka",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'reading'"
@@ -989,7 +1046,6 @@
           "name": "user_bookmark_user_id_user_id_fk",
           "tableFrom": "user_bookmark",
           "tableTo": "user",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "user_id"
           ],
@@ -1003,7 +1059,6 @@
           "name": "user_bookmark_book_id_book_id_fk",
           "tableFrom": "user_bookmark",
           "tableTo": "book",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "book_id"
           ],
@@ -1017,7 +1072,6 @@
           "name": "user_bookmark_chapter_id_book_chapter_id_fk",
           "tableFrom": "user_bookmark",
           "tableTo": "book_chapter",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "chapter_id"
           ],
@@ -1034,9 +1088,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "toonka.user_comment": {
+    "public.user_comment": {
       "name": "user_comment",
-      "schema": "toonka",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -1236,7 +1290,6 @@
           "name": "user_comment_user_id_user_id_fk",
           "tableFrom": "user_comment",
           "tableTo": "user",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "user_id"
           ],
@@ -1250,7 +1303,6 @@
           "name": "user_comment_book_id_book_id_fk",
           "tableFrom": "user_comment",
           "tableTo": "book",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "book_id"
           ],
@@ -1267,9 +1319,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "toonka.user_excluded_tag": {
+    "public.user_excluded_tag": {
       "name": "user_excluded_tag",
-      "schema": "toonka",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -1348,7 +1400,6 @@
           "name": "user_excluded_tag_user_id_user_id_fk",
           "tableFrom": "user_excluded_tag",
           "tableTo": "user",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "user_id"
           ],
@@ -1362,7 +1413,6 @@
           "name": "user_excluded_tag_tag_id_book_tag_id_fk",
           "tableFrom": "user_excluded_tag",
           "tableTo": "book_tag",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "tag_id"
           ],
@@ -1379,9 +1429,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "toonka.user_permission": {
+    "public.user_permission": {
       "name": "user_permission",
-      "schema": "toonka",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -1415,6 +1465,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
+        },
+        "modified_at": {
+          "name": "modified_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -1432,6 +1488,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "user_permission_modified_at_idx": {
+          "name": "user_permission_modified_at_idx",
+          "columns": [
+            {
+              "expression": "modified_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -1439,7 +1510,6 @@
           "name": "user_permission_user_id_user_id_fk",
           "tableFrom": "user_permission",
           "tableTo": "user",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "user_id"
           ],
@@ -1456,9 +1526,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "toonka.user_statistic": {
+    "public.user_statistic": {
       "name": "user_statistic",
-      "schema": "toonka",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -1513,7 +1583,6 @@
           "name": "user_statistic_user_id_user_id_fk",
           "tableFrom": "user_statistic",
           "tableTo": "user",
-          "schemaTo": "toonka",
           "columnsFrom": [
             "user_id"
           ],
@@ -1532,18 +1601,19 @@
     }
   },
   "enums": {
-    "toonka.book_type": {
+    "public.book_type": {
       "name": "book_type",
-      "schema": "toonka",
+      "schema": "public",
       "values": [
         "manga",
         "manhua",
-        "manhwa"
+        "manhwa",
+        "novel"
       ]
     },
-    "toonka.user_bookmark_status": {
+    "public.user_bookmark_status": {
       "name": "user_bookmark_status",
-      "schema": "toonka",
+      "schema": "public",
       "values": [
         "reading",
         "plan_to_read",
@@ -1553,9 +1623,7 @@
       ]
     }
   },
-  "schemas": {
-    "toonka": "toonka"
-  },
+  "schemas": {},
   "sequences": {},
   "roles": {},
   "policies": {},

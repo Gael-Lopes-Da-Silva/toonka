@@ -5,7 +5,7 @@ import express from "express";
 import helmet from "helmet";
 import { exit } from "process";
 
-import { errorSender } from "./middlewares";
+import { errorSender } from "./middlewares/global";
 import { type Error } from "./services/ErrorHandler";
 
 import BookRoute from "./routes/book";

@@ -2,7 +2,7 @@ import "dotenv/config";
 
 import type { NextFunction, Request, Response } from "express";
 
-import { type Error } from "../services/ErrorHandler";
+import { type Error } from "../../services/ErrorHandler";
 
 export default () => {
 	return (request: Request, response: Response, next: NextFunction) => {
