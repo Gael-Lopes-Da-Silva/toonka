@@ -1,7 +1,6 @@
 services:
   toonka_adminer:
     image: adminer:latest
-    restart: always
     container_name: toonka_adminer
     depends_on:
       toonka_db:
@@ -13,7 +12,6 @@ services:
 
   toonka_db:
     image: postgres:latest
-    restart: always
     container_name: toonka_db
     volumes:
       - toonka_data:/var/lib/postgresql/data
