@@ -103,9 +103,6 @@ router.post("/", async (request, response) => {
 	// FIXME: should be done via trigger
 	await db.insert(schema.userPermission).values({
 		userId: result.id,
-		member: true,
-		moderator: false,
-		administrator: false,
 	});
 
 	// TODO: send account confirmation mail
