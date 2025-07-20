@@ -1,2 +1,2 @@
-export { db } from "./db.ts";
-export { schema } from "./schema.ts";
+export { db } from "./db";
+export { schema } from "./schema";

@@ -3,7 +3,6 @@ import "dotenv/config";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
-import { exit } from "process";
 
 import { errorSender } from "./middlewares/global";
 import { type Error } from "./services/ErrorHandler";
@@ -22,11 +21,6 @@ import UserExcludedTagRoute from "./routes/userExcludedTag";
 import UserPermissionRoute from "./routes/userPermission";
 import UserStatisticRoute from "./routes/userStatistic";
 
-if (!process.env.API_PORT || !process.env.API_SECRET) {
-	console.error("Missing entry in .env");
-	exit(1);
-}
-
 declare global {
 	namespace Express {
 		interface Request {
@@ -36,7 +30,7 @@ declare global {
 	}
 }
 
-const PORT = process.env.API_PORT;
+const PORT = process.env.API_PORT ?? 3000;
 
 const app = express();
 app.use(cors());
