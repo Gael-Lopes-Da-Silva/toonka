@@ -30,7 +30,11 @@ declare global {
 	}
 }
 
-const PORT = process.env.API_PORT ?? 3000;
+if (!process.env.API_PORT) {
+	throw new Error("API_PORT environment variable is not set.");
+}
+
+const PORT = process.env.API_PORT;
 
 const app = express();
 app.use(cors());

@@ -39,10 +39,9 @@ export const Errors = createErrors({
 	USERNAME_ALREADY_EXISTS: "This username is already taken",
 	EMAIL_ALREADY_EXISTS: "This email is already registered",
 
-	USER_NOT_FOUND: "User not found",
 	USER_NOT_CONFIRMED: "User account is not confirmed",
-	BOOK_NOT_FOUND: "Book not found",
 
+	RESSOURCE_NOT_FOUND: "This ressource was not found",
 	RESSOURCE_DELETED: "This ressource has been deleted",
 	RESSOURCE_ALREADY_DELETED: "This ressource has already been deleted",
 

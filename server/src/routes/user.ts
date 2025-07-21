@@ -6,7 +6,7 @@ import { Router } from "express";
 import jwt from "jsonwebtoken";
 
 import { db, schema } from "../database";
-import { authentification, permissions } from "../middlewares/individual";
+import { authentification } from "../middlewares/individual";
 import { Errors } from "../services/ErrorHandler";
 
 const router = Router();
@@ -113,159 +113,178 @@ router.post("/", async (request, response) => {
 	});
 });
 
-router.get(
-	"/",
-	authentification,
-	permissions("moderator"),
-	async (request, response) => {
-		const {
-			username,
-			email,
-			token,
-			verifiedAt,
-			createdAt,
-			deletedAt,
-			modifiedAt,
-		} = request.body ?? {};
+router.get("/", authentification, async (request, response) => {
+	const {
+		username,
+		email,
+		token,
+		verifiedAt,
+		createdAt,
+		deletedAt,
+		modifiedAt,
+	} = request.body ?? {};
 
-		const conditions: any[] = [];
-
-		const filterEqual = (value: any, column: any) => {
-			if (!value) return;
-			conditions.push(eq(column, value));
-		};
-
-		filterEqual(username, schema.user.username);
-		filterEqual(email, schema.user.email);
-		filterEqual(token, schema.user.token);
-
-		const filterNullable = (value: any, column: any) => {
-			if (value === undefined) return;
-			conditions.push(value === null ? isNull(column) : eq(column, value));
-		};
-
-		filterNullable(verifiedAt, schema.user.verifiedAt);
-		filterNullable(createdAt, schema.user.createdAt);
-		filterNullable(deletedAt, schema.user.deletedAt);
-		filterNullable(modifiedAt, schema.user.modifiedAt);
-
-		const users = await db
+	const userPermissions = (
+		await db
 			.select()
-			.from(schema.user)
-			.where(and(...conditions));
+			.from(schema.userPermission)
+			.where(eq(schema.userPermission.userId, request.user.id))
+	)[0];
 
-		return response.status(200).json({
-			value: users,
-			error: 0,
-		});
-	},
-);
+	if (!userPermissions) return request.sendError(401, Errors.INTERNAL_ERROR);
 
-router.get(
-	"/:id",
-	authentification,
-	permissions("moderator", {
-		bypassUserId: true,
-	}),
-	async (request, response) => {
-		const id = Number(request.params.id);
-		if (isNaN(id)) return request.sendError(400, Errors.INVALID_ID);
+	if (!userPermissions.administrator && !userPermissions.moderator)
+		return request.sendError(401, Errors.UNAUTHORIZED);
 
-		const user = (
-			await db.select().from(schema.user).where(eq(schema.user.id, id))
-		)[0];
+	const conditions: any[] = [];
 
-		if (!user) return request.sendError(404, Errors.USER_NOT_FOUND);
+	const filterEqual = (value: any, column: any) => {
+		if (!value) return;
+		conditions.push(eq(column, value));
+	};
 
-		return response.status(200).json({
-			value: user,
-			error: 0,
-		});
-	},
-);
+	filterEqual(username, schema.user.username);
+	filterEqual(email, schema.user.email);
+	filterEqual(token, schema.user.token);
 
-router.put(
-	"/:id",
-	authentification,
-	permissions("moderator", {
-		bypassUserId: true,
-	}),
-	async (request, response) => {
-		const id = Number(request.params.id);
-		if (isNaN(id)) return request.sendError(400, Errors.INVALID_ID);
+	const filterNullable = (value: any, column: any) => {
+		if (value === undefined) return;
+		conditions.push(value === null ? isNull(column) : eq(column, value));
+	};
 
-		if (id !== request.user.id)
-			return request.sendError(401, Errors.UNAUTHORIZED);
+	filterNullable(verifiedAt, schema.user.verifiedAt);
+	filterNullable(createdAt, schema.user.createdAt);
+	filterNullable(deletedAt, schema.user.deletedAt);
+	filterNullable(modifiedAt, schema.user.modifiedAt);
 
-		const user = (
-			await db.select().from(schema.user).where(eq(schema.user.id, id))
-		)[0];
+	const users = await db
+		.select()
+		.from(schema.user)
+		.where(and(...conditions));
 
-		if (!user) return request.sendError(404, Errors.USER_NOT_FOUND);
+	return response.status(200).json({
+		value: users,
+		error: 0,
+	});
+});
 
-		if (user.deletedAt !== null)
-			return request.sendError(400, Errors.RESSOURCE_DELETED);
+router.get("/:id", authentification, async (request, response) => {
+	const id = request.params.id;
 
-		const { username, email, password, token } = request.body ?? {};
-
-		const result = (
+	if (request.user.id !== id) {
+		const userPermissions = (
 			await db
-				.update(schema.user)
-				.set({
-					modifiedAt: new Date(),
-					...(username !== undefined && { username }),
-					...(email !== undefined && { email }),
-					...(password !== undefined && { password }),
-					...(token !== undefined && { token }),
-				})
-				.where(eq(schema.user.id, id))
-				.returning()
+				.select()
+				.from(schema.userPermission)
+				.where(eq(schema.userPermission.userId, request.user.id))
 		)[0];
 
-		return response.status(200).json({
-			value: result,
-			error: 0,
-		});
-	},
-);
+		if (!userPermissions) return request.sendError(401, Errors.INTERNAL_ERROR);
 
-router.delete(
-	"/:id",
-	authentification,
-	permissions("moderator", {
-		bypassUserId: true,
-	}),
-	async (request, response) => {
-		const id = Number(request.params.id);
-		if (isNaN(id)) return request.sendError(400, Errors.INVALID_ID);
-
-		if (id !== request.user.id)
+		if (!userPermissions.administrator && !userPermissions.moderator)
 			return request.sendError(401, Errors.UNAUTHORIZED);
+	}
 
-		const user = (
-			await db.select().from(schema.user).where(eq(schema.user.id, id))
-		)[0];
+	const user = (
+		await db.select().from(schema.user).where(eq(schema.user.id, id))
+	)[0];
 
-		if (!user) return request.sendError(404, Errors.USER_NOT_FOUND);
+	if (!user) return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
 
-		if (user.deletedAt !== null)
-			return request.sendError(400, Errors.RESSOURCE_ALREADY_DELETED);
+	return response.status(200).json({
+		value: user,
+		error: 0,
+	});
+});
 
-		const result = (
+router.put("/:id", authentification, async (request, response) => {
+	const id = request.params.id;
+
+	if (request.user.id !== id) {
+		const userPermissions = (
 			await db
-				.update(schema.user)
-				.set({
-					deletedAt: new Date(),
-				})
-				.where(eq(schema.user.id, id))
-				.returning()
+				.select()
+				.from(schema.userPermission)
+				.where(eq(schema.userPermission.userId, request.user.id))
 		)[0];
 
-		return response.status(200).json({
-			value: result,
-			error: 0,
-		});
-	},
-);
+		if (!userPermissions) return request.sendError(401, Errors.INTERNAL_ERROR);
+
+		if (!userPermissions.administrator && !userPermissions.moderator)
+			return request.sendError(401, Errors.UNAUTHORIZED);
+	}
+
+	const user = (
+		await db.select().from(schema.user).where(eq(schema.user.id, id))
+	)[0];
+
+	if (!user) return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+
+	if (user.deletedAt !== null)
+		return request.sendError(400, Errors.RESSOURCE_DELETED);
+
+	const { username, email, password, token } = request.body ?? {};
+
+	const result = (
+		await db
+			.update(schema.user)
+			.set({
+				modifiedAt: new Date(),
+				...(username !== undefined && { username }),
+				...(email !== undefined && { email }),
+				...(password !== undefined && { password }),
+				...(token !== undefined && { token }),
+			})
+			.where(eq(schema.user.id, id))
+			.returning()
+	)[0];
+
+	return response.status(200).json({
+		value: result,
+		error: 0,
+	});
+});
+
+router.delete("/:id", authentification, async (request, response) => {
+	const id = request.params.id;
+
+	if (request.user.id !== id) {
+		const userPermissions = (
+			await db
+				.select()
+				.from(schema.userPermission)
+				.where(eq(schema.userPermission.userId, request.user.id))
+		)[0];
+
+		if (!userPermissions) return request.sendError(401, Errors.INTERNAL_ERROR);
+
+		if (!userPermissions.administrator && !userPermissions.moderator)
+			return request.sendError(401, Errors.UNAUTHORIZED);
+	}
+
+	const user = (
+		await db.select().from(schema.user).where(eq(schema.user.id, id))
+	)[0];
+
+	if (!user) return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+
+	if (user.deletedAt !== null)
+		return request.sendError(400, Errors.RESSOURCE_ALREADY_DELETED);
+
+	const result = (
+		await db
+			.update(schema.user)
+			.set({
+				deletedAt: new Date(),
+			})
+			.where(eq(schema.user.id, id))
+			.returning()
+	)[0];
+
+	return response.status(200).json({
+		value: result,
+		error: 0,
+	});
+});
 
 export default router;

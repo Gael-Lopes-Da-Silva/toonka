@@ -14,8 +14,9 @@ export default (request: Request, _response: Response, next: NextFunction) => {
 		? authorization.split(" ")[1]
 		: authorization;
 
-	if (!process.env.API_SECRET)
-		return request.sendError(500, Errors.INTERNAL_ERROR);
+	if (!process.env.API_SECRET) {
+		throw new Error("API_SECRET environment variable is not set.");
+	}
 
 	try {
 		const decoded = jwt.verify(token, process.env.API_SECRET);

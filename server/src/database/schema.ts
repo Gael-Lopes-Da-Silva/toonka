@@ -33,12 +33,21 @@ const encryptedText = customType<{ data: string }>({
 	fromDriver(value: unknown) {
 		const encryptedHex = value as string;
 		const encryptedBuffer = Buffer.from(encryptedHex, "hex");
-		const key = Buffer.from(process.env.ENCRYPTION_KEY!, "hex");
+
+		if (!process.env.API_SECRET) {
+			throw new Error("API_SECRET environment variable is not set.");
+		}
+
+		const key = Buffer.from(process.env.API_SECRET, "hex");
 		const decryptedBuffer = decrypt(encryptedBuffer, key);
 		return decryptedBuffer.toString("utf8");
 	},
 	toDriver(value: string) {
-		const key = Buffer.from(process.env.ENCRYPTION_KEY!, "hex");
+		if (!process.env.API_SECRET) {
+			throw new Error("API_SECRET environment variable is not set.");
+		}
+
+		const key = Buffer.from(process.env.API_SECRET, "hex");
 		const encryptedBuffer = encrypt(Buffer.from(value, "utf8"), key);
 		return encryptedBuffer.toString("hex");
 	},
@@ -62,7 +71,7 @@ export const userBookmarkStatus = pgEnum("user_bookmark_status", [
 export const book = pgTable(
 	"book",
 	{
-		id: uuid("id").primaryKey(),
+		id: uuid("id").primaryKey().defaultRandom(),
 		type: bookType("type").notNull(),
 		score: real("score"),
 		synopsis: encryptedText("synopsis").notNull(),
@@ -85,7 +94,7 @@ export const book = pgTable(
 export const bookChapter = pgTable(
 	"book_chapter",
 	{
-		id: uuid("id").primaryKey(),
+		id: uuid("id").primaryKey().defaultRandom(),
 		bookId: uuid("book_id")
 			.notNull()
 			.references(() => book.id),
@@ -108,7 +117,7 @@ export const bookChapter = pgTable(
 export const bookCover = pgTable(
 	"book_cover",
 	{
-		id: uuid("id").primaryKey(),
+		id: uuid("id").primaryKey().defaultRandom(),
 		bookId: uuid("book_id")
 			.notNull()
 			.references(() => book.id),
@@ -120,7 +129,7 @@ export const bookCover = pgTable(
 export const bookName = pgTable(
 	"book_name",
 	{
-		id: uuid("id").primaryKey(),
+		id: uuid("id").primaryKey().defaultRandom(),
 		bookId: uuid("book_id")
 			.notNull()
 			.references(() => book.id),
@@ -132,7 +141,7 @@ export const bookName = pgTable(
 export const bookProvider = pgTable(
 	"book_provider",
 	{
-		id: uuid("id").primaryKey(),
+		id: uuid("id").primaryKey().defaultRandom(),
 		bookId: uuid("book_id")
 			.notNull()
 			.references(() => book.id),
@@ -146,7 +155,7 @@ export const bookProvider = pgTable(
 export const bookStatistic = pgTable(
 	"book_statistic",
 	{
-		id: uuid("id").primaryKey(),
+		id: uuid("id").primaryKey().defaultRandom(),
 		bookId: uuid("book_id")
 			.notNull()
 			.references(() => book.id),
@@ -157,7 +166,7 @@ export const bookStatistic = pgTable(
 export const bookTag = pgTable(
 	"book_tag",
 	{
-		id: uuid("id").primaryKey(),
+		id: uuid("id").primaryKey().defaultRandom(),
 		bookId: uuid("book_id")
 			.notNull()
 			.references(() => book.id),
@@ -177,7 +186,7 @@ export const bookTag = pgTable(
 export const user = pgTable(
 	"user",
 	{
-		id: uuid("id").primaryKey(),
+		id: uuid("id").primaryKey().defaultRandom(),
 		username: encryptedText("username").notNull().unique(),
 		email: encryptedText("email").notNull().unique(),
 		password: encryptedText("password").notNull(),
@@ -197,7 +206,7 @@ export const user = pgTable(
 export const userBookmark = pgTable(
 	"user_bookmark",
 	{
-		id: uuid("id").primaryKey(),
+		id: uuid("id").primaryKey().defaultRandom(),
 		userId: uuid("user_id")
 			.notNull()
 			.references(() => user.id),
@@ -231,7 +240,7 @@ export const userBookmark = pgTable(
 export const userComment = pgTable(
 	"user_comment",
 	{
-		id: uuid("id").primaryKey(),
+		id: uuid("id").primaryKey().defaultRandom(),
 		userId: uuid("user_id")
 			.notNull()
 			.references(() => user.id),
@@ -261,7 +270,7 @@ export const userComment = pgTable(
 export const userExcludedTag = pgTable(
 	"user_excluded_tag",
 	{
-		id: uuid("id").primaryKey(),
+		id: uuid("id").primaryKey().defaultRandom(),
 		userId: uuid("user_id")
 			.notNull()
 			.references(() => user.id),
@@ -279,7 +288,7 @@ export const userExcludedTag = pgTable(
 export const userPermission = pgTable(
 	"user_permission",
 	{
-		id: uuid("id").primaryKey(),
+		id: uuid("id").primaryKey().defaultRandom(),
 		userId: uuid("user_id")
 			.notNull()
 			.references(() => user.id),
@@ -297,7 +306,7 @@ export const userPermission = pgTable(
 export const userStatistic = pgTable(
 	"user_statistic",
 	{
-		id: uuid("id").primaryKey(),
+		id: uuid("id").primaryKey().defaultRandom(),
 		userId: uuid("user_id")
 			.notNull()
 			.references(() => user.id),
