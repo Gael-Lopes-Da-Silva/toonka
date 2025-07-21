@@ -1,7 +1,7 @@
 CREATE TYPE "public"."book_type" AS ENUM('manga', 'manhua', 'manhwa', 'novel');--> statement-breakpoint
 CREATE TYPE "public"."user_bookmark_status" AS ENUM('reading', 'plan_to_read', 'on_hold', 'dropped', 'completed');--> statement-breakpoint
 CREATE TABLE "book" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"type" "book_type" NOT NULL,
 	"score" real,
 	"synopsis" text NOT NULL,
@@ -14,8 +14,8 @@ CREATE TABLE "book" (
 );
 --> statement-breakpoint
 CREATE TABLE "book_chapter" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"book_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
+	"book_id" uuid NOT NULL,
 	"name" text NOT NULL,
 	"link" text NOT NULL,
 	"number" integer DEFAULT 0 NOT NULL,
@@ -25,35 +25,35 @@ CREATE TABLE "book_chapter" (
 );
 --> statement-breakpoint
 CREATE TABLE "book_cover" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"book_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
+	"book_id" uuid NOT NULL,
 	"link" text NOT NULL,
 	CONSTRAINT "book_cover_link_unique" UNIQUE("link")
 );
 --> statement-breakpoint
 CREATE TABLE "book_name" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"book_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
+	"book_id" uuid NOT NULL,
 	"name" text NOT NULL,
 	CONSTRAINT "book_name_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
 CREATE TABLE "book_provider" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"book_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
+	"book_id" uuid NOT NULL,
 	"name" text NOT NULL,
 	"link" text NOT NULL,
 	"link_api" text
 );
 --> statement-breakpoint
 CREATE TABLE "book_statistic" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"book_id" integer NOT NULL
+	"id" uuid PRIMARY KEY NOT NULL,
+	"book_id" uuid NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "book_tag" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"book_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
+	"book_id" uuid NOT NULL,
 	"name" text NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"deleted_at" timestamp,
@@ -61,7 +61,7 @@ CREATE TABLE "book_tag" (
 );
 --> statement-breakpoint
 CREATE TABLE "user" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"username" text NOT NULL,
 	"email" text NOT NULL,
 	"password" text NOT NULL,
@@ -76,10 +76,10 @@ CREATE TABLE "user" (
 );
 --> statement-breakpoint
 CREATE TABLE "user_bookmark" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"user_id" integer NOT NULL,
-	"book_id" integer NOT NULL,
-	"chapter_id" integer,
+	"id" uuid PRIMARY KEY NOT NULL,
+	"user_id" uuid NOT NULL,
+	"book_id" uuid NOT NULL,
+	"chapter_id" uuid,
 	"status" "user_bookmark_status" DEFAULT 'reading' NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"deleted_at" timestamp,
@@ -88,9 +88,9 @@ CREATE TABLE "user_bookmark" (
 );
 --> statement-breakpoint
 CREATE TABLE "user_comment" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"user_id" integer NOT NULL,
-	"book_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
+	"user_id" uuid NOT NULL,
+	"book_id" uuid NOT NULL,
 	"message" text NOT NULL,
 	"like" integer DEFAULT 0 NOT NULL,
 	"highlighted" boolean DEFAULT false NOT NULL,
@@ -101,14 +101,14 @@ CREATE TABLE "user_comment" (
 );
 --> statement-breakpoint
 CREATE TABLE "user_excluded_tag" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"user_id" integer NOT NULL,
-	"tag_id" integer NOT NULL
+	"id" uuid PRIMARY KEY NOT NULL,
+	"user_id" uuid NOT NULL,
+	"tag_id" uuid NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "user_permission" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"user_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
+	"user_id" uuid NOT NULL,
 	"member" boolean DEFAULT true NOT NULL,
 	"moderator" boolean DEFAULT false NOT NULL,
 	"administrator" boolean DEFAULT false NOT NULL,
@@ -116,8 +116,8 @@ CREATE TABLE "user_permission" (
 );
 --> statement-breakpoint
 CREATE TABLE "user_statistic" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"user_id" integer NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
+	"user_id" uuid NOT NULL,
 	"reading_status" real,
 	"content_type" real,
 	"genres" real
