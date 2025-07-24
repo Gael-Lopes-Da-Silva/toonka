@@ -13,8 +13,9 @@ const router = Router();
 
 // LOGIN
 router.post("/login", async (request, response) => {
-	if (!request.body.email || !request.body.password)
+	if (!request.body.email || !request.body.password) {
 		return request.sendError(400, Errors.REQUIRED_FIELD);
+	}
 
 	const user = (
 		await db
@@ -23,18 +24,23 @@ router.post("/login", async (request, response) => {
 			.where(and(eq(schema.user.email, request.body.email)))
 	)[0];
 
-	if (!user) return request.sendError(401, Errors.INVALID_EMAIL);
+	if (!user) {
+		return request.sendError(401, Errors.INVALID_EMAIL);
+	}
 
-	if (user.deletedAt !== null)
+	if (user.deletedAt !== null) {
 		return request.sendError(401, Errors.RESSOURCE_DELETED);
+	}
 
-	if (user.token?.split(":")[0] == "ac")
+	if (user.token?.split(":")[0] == "ac") {
 		return request.sendError(401, Errors.USER_NOT_CONFIRMED);
+	}
 
 	const [salt, storedHash] = user.password.split(":");
 
-	if (!salt || !storedHash)
+	if (!salt || !storedHash) {
 		return request.sendError(500, Errors.INTERNAL_ERROR);
+	}
 
 	const storedHashBuffer = Buffer.from(storedHash, "hex");
 
@@ -43,10 +49,13 @@ router.post("/login", async (request, response) => {
 
 	const match = timingSafeEqual(storedHashBuffer, currentHashBuffer);
 
-	if (!match) return request.sendError(401, Errors.INVALID_PASSWORD);
+	if (!match) {
+		return request.sendError(401, Errors.INVALID_PASSWORD);
+	}
 
-	if (!process.env.API_SECRET)
+	if (!process.env.API_SECRET) {
 		return request.sendError(500, Errors.INTERNAL_ERROR);
+	}
 
 	const token = jwt.sign(
 		{
