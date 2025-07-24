@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
-import { and, eq, isNull, or } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, or } from "drizzle-orm";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 
@@ -11,19 +11,22 @@ import { Errors } from "../services/ErrorHandler";
 
 const router = Router();
 
+// LOGIN
 router.post("/login", async (request, response) => {
-	const { email, password } = request.body ?? {};
-
-	if (!email || !password) return request.sendError(400, Errors.REQUIRED_FIELD);
+	if (!request.body.email || !request.body.password)
+		return request.sendError(400, Errors.REQUIRED_FIELD);
 
 	const user = (
 		await db
 			.select()
 			.from(schema.user)
-			.where(and(eq(schema.user.email, email), isNull(schema.user.deletedAt)))
+			.where(and(eq(schema.user.email, request.body.email)))
 	)[0];
 
 	if (!user) return request.sendError(401, Errors.INVALID_EMAIL);
+
+	if (user.deletedAt !== null)
+		return request.sendError(401, Errors.RESSOURCE_DELETED);
 
 	if (user.token?.split(":")[0] == "ac")
 		return request.sendError(401, Errors.USER_NOT_CONFIRMED);
@@ -35,7 +38,7 @@ router.post("/login", async (request, response) => {
 
 	const storedHashBuffer = Buffer.from(storedHash, "hex");
 
-	const currentHash = scryptSync(password, salt, 32);
+	const currentHash = scryptSync(request.body.password, salt, 32);
 	const currentHashBuffer = Buffer.from(currentHash);
 
 	const match = timingSafeEqual(storedHashBuffer, currentHashBuffer);
@@ -61,30 +64,35 @@ router.post("/login", async (request, response) => {
 	});
 });
 
+// CREATE
 router.post("/", async (request, response) => {
-	const { username, email, password } = request.body ?? {};
-
-	if (!username || !email || !password)
+	if (!request.body.username || !request.body.email || !request.body.password) {
 		return request.sendError(400, Errors.REQUIRED_FIELD);
+	}
 
 	const user = (
 		await db
 			.select()
 			.from(schema.user)
 			.where(
-				or(eq(schema.user.email, email), eq(schema.user.username, username)),
+				or(
+					eq(schema.user.email, request.body.email),
+					eq(schema.user.username, request.body.username),
+				),
 			)
 	)[0];
 
 	if (user) {
-		if (user.email === email)
-			return request.sendError(400, Errors.EMAIL_ALREADY_EXISTS);
-		if (user.username === username)
-			return request.sendError(400, Errors.USERNAME_ALREADY_EXISTS);
+		return request.sendError(
+			400,
+			user.email === request.body.email
+				? Errors.EMAIL_ALREADY_EXISTS
+				: Errors.USERNAME_ALREADY_EXISTS,
+		);
 	}
 
 	const salt = randomBytes(16).toString("hex");
-	const hash = scryptSync(password, salt, 32).toString("hex");
+	const hash = scryptSync(request.body.password, salt, 32).toString("hex");
 
 	const token = "ac:" + randomBytes(32).toString("hex");
 
@@ -92,8 +100,8 @@ router.post("/", async (request, response) => {
 		await db
 			.insert(schema.user)
 			.values({
-				username: username,
-				email: email,
+				username: request.body.username,
+				email: request.body.email,
 				password: `${salt}:${hash}`,
 				token: token,
 			})
@@ -113,28 +121,57 @@ router.post("/", async (request, response) => {
 	});
 });
 
-router.get("/", authentification, async (request, response) => {
-	const {
-		username,
-		email,
-		token,
-		verifiedAt,
-		createdAt,
-		deletedAt,
-		modifiedAt,
-	} = request.body ?? {};
+// READ
+router.get("/:id?", authentification, async (request, response) => {
+	if (request.params.id) {
+		if (request.user.id !== request.params.id) {
+			const userPermission = (
+				await db
+					.select()
+					.from(schema.userPermission)
+					.where(eq(schema.userPermission.userId, request.user.id))
+			)[0];
 
-	const userPermissions = (
+			if (!userPermission) {
+				return request.sendError(401, Errors.INTERNAL_ERROR);
+			}
+
+			if (!userPermission.administrator && !userPermission.moderator) {
+				return request.sendError(401, Errors.UNAUTHORIZED);
+			}
+		}
+
+		const user = (
+			await db
+				.select()
+				.from(schema.user)
+				.where(eq(schema.user.id, request.params.id))
+		)[0];
+
+		if (!user) {
+			return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		}
+
+		return response.status(200).json({
+			value: user,
+			error: 0,
+		});
+	}
+
+	const userPermission = (
 		await db
 			.select()
 			.from(schema.userPermission)
 			.where(eq(schema.userPermission.userId, request.user.id))
 	)[0];
 
-	if (!userPermissions) return request.sendError(401, Errors.INTERNAL_ERROR);
+	if (!userPermission) {
+		return request.sendError(401, Errors.INTERNAL_ERROR);
+	}
 
-	if (!userPermissions.administrator && !userPermissions.moderator)
+	if (!userPermission.administrator && !userPermission.moderator) {
 		return request.sendError(401, Errors.UNAUTHORIZED);
+	}
 
 	const conditions: any[] = [];
 
@@ -143,24 +180,48 @@ router.get("/", authentification, async (request, response) => {
 		conditions.push(eq(column, value));
 	};
 
-	filterEqual(username, schema.user.username);
-	filterEqual(email, schema.user.email);
-	filterEqual(token, schema.user.token);
+	filterEqual(request.query.username, schema.user.username);
+	filterEqual(request.query.email, schema.user.email);
+	filterEqual(request.query.token, schema.user.token);
 
 	const filterNullable = (value: any, column: any) => {
 		if (value === undefined) return;
 		conditions.push(value === null ? isNull(column) : eq(column, value));
 	};
 
-	filterNullable(verifiedAt, schema.user.verifiedAt);
-	filterNullable(createdAt, schema.user.createdAt);
-	filterNullable(deletedAt, schema.user.deletedAt);
-	filterNullable(modifiedAt, schema.user.modifiedAt);
+	filterNullable(request.query.verifiedAt, schema.user.verifiedAt);
+	filterNullable(request.query.createdAt, schema.user.createdAt);
+	filterNullable(request.query.deletedAt, schema.user.deletedAt);
+	filterNullable(request.query.modifiedAt, schema.user.modifiedAt);
 
-	const users = await db
-		.select()
-		.from(schema.user)
-		.where(and(...conditions));
+	let query: any = db.select().from(schema.user);
+
+	if (conditions.length > 0) {
+		query = query.where(and(...conditions));
+	}
+
+	const orderMap = [
+		"username",
+		"email",
+		"token",
+		"verifiedAt",
+		"createdAt",
+		"deletedAt",
+		"modifiedAt",
+	] as const;
+
+	if (
+		request.query.orderBy &&
+		orderMap.includes(request.query.orderBy as (typeof orderMap)[number])
+	) {
+		query = query.orderBy(
+			request.query.orderDirection === "desc"
+				? desc(schema.user[request.query.orderBy as (typeof orderMap)[number]])
+				: asc(schema.user[request.query.orderBy as (typeof orderMap)[number]]),
+		);
+	}
+
+	const users = await query;
 
 	return response.status(200).json({
 		value: users,
@@ -168,121 +229,228 @@ router.get("/", authentification, async (request, response) => {
 	});
 });
 
-router.get("/:id", authentification, async (request, response) => {
-	const id = request.params.id;
+// UPDATE
+router.put("/:id?", authentification, async (request, response) => {
+	if (request.params.id) {
+		if (request.user.id !== request.params.id) {
+			const userPermissions = (
+				await db
+					.select()
+					.from(schema.userPermission)
+					.where(eq(schema.userPermission.userId, request.user.id))
+			)[0];
 
-	if (request.user.id !== id) {
-		const userPermissions = (
+			if (!userPermissions) {
+				return request.sendError(401, Errors.INTERNAL_ERROR);
+			}
+
+			if (!userPermissions.administrator && !userPermissions.moderator) {
+				return request.sendError(401, Errors.UNAUTHORIZED);
+			}
+		}
+
+		const user = (
 			await db
 				.select()
-				.from(schema.userPermission)
-				.where(eq(schema.userPermission.userId, request.user.id))
+				.from(schema.user)
+				.where(eq(schema.user.id, request.params.id))
 		)[0];
 
-		if (!userPermissions) return request.sendError(401, Errors.INTERNAL_ERROR);
+		if (!user) {
+			return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		}
 
-		if (!userPermissions.administrator && !userPermissions.moderator)
-			return request.sendError(401, Errors.UNAUTHORIZED);
+		if (user.deletedAt !== null) {
+			return request.sendError(400, Errors.RESSOURCE_DELETED);
+		}
+
+		const result = (
+			await db
+				.update(schema.user)
+				.set({
+					modifiedAt: new Date(),
+					...(request.body.username !== undefined && {
+						username: request.body.username,
+					}),
+					...(request.body.email !== undefined && {
+						email: request.body.email,
+					}),
+					...(request.body.password !== undefined && {
+						password: request.body.password,
+					}),
+					...(request.body.token !== undefined && {
+						token: request.body.token,
+					}),
+				})
+				.where(eq(schema.user.id, request.params.id))
+				.returning()
+		)[0];
+
+		return response.status(200).json({
+			value: result,
+			error: 0,
+		});
 	}
 
-	const user = (
-		await db.select().from(schema.user).where(eq(schema.user.id, id))
+	const userPermission = (
+		await db
+			.select()
+			.from(schema.userPermission)
+			.where(eq(schema.userPermission.userId, request.user.id))
 	)[0];
 
-	if (!user) return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+	if (!userPermission) {
+		return request.sendError(401, Errors.INTERNAL_ERROR);
+	}
+
+	if (!userPermission.administrator && !userPermission.moderator) {
+		return request.sendError(401, Errors.UNAUTHORIZED);
+	}
+
+	const conditions: any[] = [];
+
+	const filterEqual = (value: any, column: any) => {
+		if (!value) return;
+		conditions.push(eq(column, value));
+	};
+
+	filterEqual(request.query.username, schema.user.username);
+	filterEqual(request.query.email, schema.user.email);
+	filterEqual(request.query.token, schema.user.token);
+
+	const filterNullable = (value: any, column: any) => {
+		if (value === undefined) return;
+		conditions.push(value === null ? isNull(column) : eq(column, value));
+	};
+
+	filterNullable(request.query.verifiedAt, schema.user.verifiedAt);
+	filterNullable(request.query.createdAt, schema.user.createdAt);
+	filterNullable(request.query.deletedAt, schema.user.deletedAt);
+	filterNullable(request.query.modifiedAt, schema.user.modifiedAt);
+
+	let query: any = db.update(schema.user).set({
+		modifiedAt: new Date(),
+		...(request.body.username !== undefined && {
+			username: request.body.username,
+		}),
+		...(request.body.email !== undefined && { email: request.body.email }),
+		...(request.body.password !== undefined && {
+			password: request.body.password,
+		}),
+		...(request.body.token !== undefined && { token: request.body.token }),
+	});
+
+	if (conditions.length > 0) {
+		query = query.where(and(...conditions));
+	}
+
+	const users = await query;
 
 	return response.status(200).json({
-		value: user,
+		value: users,
 		error: 0,
 	});
 });
 
-router.put("/:id", authentification, async (request, response) => {
-	const id = request.params.id;
+// DELETE
+router.delete("/:id?", authentification, async (request, response) => {
+	if (request.params.id) {
+		if (request.user.id !== request.params.id) {
+			const userPermissions = (
+				await db
+					.select()
+					.from(schema.userPermission)
+					.where(eq(schema.userPermission.userId, request.user.id))
+			)[0];
 
-	if (request.user.id !== id) {
-		const userPermissions = (
+			if (!userPermissions) {
+				return request.sendError(401, Errors.INTERNAL_ERROR);
+			}
+
+			if (!userPermissions.administrator && !userPermissions.moderator) {
+				return request.sendError(401, Errors.UNAUTHORIZED);
+			}
+		}
+
+		const user = (
 			await db
 				.select()
-				.from(schema.userPermission)
-				.where(eq(schema.userPermission.userId, request.user.id))
+				.from(schema.user)
+				.where(eq(schema.user.id, request.params.id))
 		)[0];
 
-		if (!userPermissions) return request.sendError(401, Errors.INTERNAL_ERROR);
+		if (!user) {
+			return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		}
 
-		if (!userPermissions.administrator && !userPermissions.moderator)
-			return request.sendError(401, Errors.UNAUTHORIZED);
+		if (user.deletedAt !== null) {
+			return request.sendError(400, Errors.RESSOURCE_ALREADY_DELETED);
+		}
+
+		const result = (
+			await db
+				.update(schema.user)
+				.set({
+					deletedAt: new Date(),
+				})
+				.where(eq(schema.user.id, request.params.id))
+				.returning()
+		)[0];
+
+		return response.status(200).json({
+			value: result,
+			error: 0,
+		});
 	}
 
-	const user = (
-		await db.select().from(schema.user).where(eq(schema.user.id, id))
-	)[0];
-
-	if (!user) return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
-
-	if (user.deletedAt !== null)
-		return request.sendError(400, Errors.RESSOURCE_DELETED);
-
-	const { username, email, password, token } = request.body ?? {};
-
-	const result = (
+	const userPermission = (
 		await db
-			.update(schema.user)
-			.set({
-				modifiedAt: new Date(),
-				...(username !== undefined && { username }),
-				...(email !== undefined && { email }),
-				...(password !== undefined && { password }),
-				...(token !== undefined && { token }),
-			})
-			.where(eq(schema.user.id, id))
-			.returning()
+			.select()
+			.from(schema.userPermission)
+			.where(eq(schema.userPermission.userId, request.user.id))
 	)[0];
 
-	return response.status(200).json({
-		value: result,
-		error: 0,
+	if (!userPermission) {
+		return request.sendError(401, Errors.INTERNAL_ERROR);
+	}
+
+	if (!userPermission.administrator && !userPermission.moderator) {
+		return request.sendError(401, Errors.UNAUTHORIZED);
+	}
+
+	const conditions: any[] = [];
+
+	const filterEqual = (value: any, column: any) => {
+		if (!value) return;
+		conditions.push(eq(column, value));
+	};
+
+	filterEqual(request.query.username, schema.user.username);
+	filterEqual(request.query.email, schema.user.email);
+	filterEqual(request.query.token, schema.user.token);
+
+	const filterNullable = (value: any, column: any) => {
+		if (value === undefined) return;
+		conditions.push(value === null ? isNull(column) : eq(column, value));
+	};
+
+	filterNullable(request.query.verifiedAt, schema.user.verifiedAt);
+	filterNullable(request.query.createdAt, schema.user.createdAt);
+	filterNullable(request.query.deletedAt, schema.user.deletedAt);
+	filterNullable(request.query.modifiedAt, schema.user.modifiedAt);
+
+	let query: any = db.update(schema.user).set({
+		deletedAt: new Date(),
 	});
-});
 
-router.delete("/:id", authentification, async (request, response) => {
-	const id = request.params.id;
-
-	if (request.user.id !== id) {
-		const userPermissions = (
-			await db
-				.select()
-				.from(schema.userPermission)
-				.where(eq(schema.userPermission.userId, request.user.id))
-		)[0];
-
-		if (!userPermissions) return request.sendError(401, Errors.INTERNAL_ERROR);
-
-		if (!userPermissions.administrator && !userPermissions.moderator)
-			return request.sendError(401, Errors.UNAUTHORIZED);
+	if (conditions.length > 0) {
+		query = query.where(and(...conditions));
 	}
 
-	const user = (
-		await db.select().from(schema.user).where(eq(schema.user.id, id))
-	)[0];
-
-	if (!user) return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
-
-	if (user.deletedAt !== null)
-		return request.sendError(400, Errors.RESSOURCE_ALREADY_DELETED);
-
-	const result = (
-		await db
-			.update(schema.user)
-			.set({
-				deletedAt: new Date(),
-			})
-			.where(eq(schema.user.id, id))
-			.returning()
-	)[0];
+	const users = await query;
 
 	return response.status(200).json({
-		value: result,
+		value: users,
 		error: 0,
 	});
 });

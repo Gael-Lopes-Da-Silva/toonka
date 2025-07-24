@@ -8,6 +8,7 @@ import { Errors } from "../services/ErrorHandler";
 
 const router = Router();
 
+// CREATE
 router.post("/", async (request, response) => {
 	const { type, synopsis, publicationStatus, chaptersAvailable, hidden } =
 		request.body ?? {};
@@ -34,7 +35,23 @@ router.post("/", async (request, response) => {
 	});
 });
 
-router.get("/", async (request, response) => {
+// READ ALL
+router.get("/:id?", async (request, response) => {
+	const id = request.params.id;
+
+	if (id) {
+		const book = (
+			await db.select().from(schema.book).where(eq(schema.book.id, id))
+		)[0];
+
+		if (!book) return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+
+		return response.status(200).json({
+			value: book,
+			error: 0,
+		});
+	}
+
 	const {
 		type,
 		score,
@@ -79,21 +96,7 @@ router.get("/", async (request, response) => {
 	});
 });
 
-router.get("/:id", async (request, response) => {
-	const id = request.params.id;
-
-	const book = (
-		await db.select().from(schema.book).where(eq(schema.book.id, id))
-	)[0];
-
-	if (!book) return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
-
-	return response.status(200).json({
-		value: book,
-		error: 0,
-	});
-});
-
+// UPDATE
 router.put("/:id", async (request, response) => {
 	const id = request.params.id;
 
@@ -136,6 +139,7 @@ router.put("/:id", async (request, response) => {
 	});
 });
 
+// DELETE
 router.delete("/:id", async (request, response) => {
 	const id = request.params.id;
 
