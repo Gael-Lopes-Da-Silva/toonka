@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { Router } from "express";
 
 import { db, schema } from "../database";
@@ -9,12 +9,11 @@ const router = Router();
 
 // CREATE
 router.post("/", authentification, async (request, response) => {
-	const { userId, bookId, message } = request.body ?? {};
-
-	if (!userId || !bookId || !message)
+	if (!request.body.userId || !request.body.bookId || !request.body.message) {
 		return request.sendError(400, Errors.REQUIRED_FIELD);
+	}
 
-	if (request.user.id !== userId) {
+	if (request.body.userId !== request.user.id) {
 		const userPermissions = (
 			await db
 				.select()
@@ -22,42 +21,57 @@ router.post("/", authentification, async (request, response) => {
 				.where(eq(schema.userPermission.userId, request.user.id))
 		)[0];
 
-		if (!userPermissions) return request.sendError(401, Errors.INTERNAL_ERROR);
+		if (!userPermissions) {
+			return request.sendError(500, Errors.INTERNAL_ERROR);
+		}
 
-		if (!userPermissions.administrator && !userPermissions.moderator)
-			return request.sendError(401, Errors.UNAUTHORIZED);
+		if (!userPermissions.administrator && !userPermissions.moderator) {
+			return request.sendError(403, Errors.FORBIDDEN);
+		}
 	}
 
 	const user = (
-		await db.select().from(schema.user).where(eq(schema.user.id, userId))
+		await db
+			.select()
+			.from(schema.user)
+			.where(eq(schema.user.id, request.body.userId))
 	)[0];
 
-	if (!user) return request.sendError(401, Errors.RESSOURCE_NOT_FOUND);
+	if (!user) {
+		return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+	}
 
-	if (user.deletedAt !== null)
-		return request.sendError(401, Errors.RESSOURCE_DELETED);
+	if (user.deletedAt !== null) {
+		return request.sendError(410, Errors.RESSOURCE_DELETED);
+	}
 
 	const book = (
-		await db.select().from(schema.book).where(eq(schema.book.id, bookId))
+		await db
+			.select()
+			.from(schema.book)
+			.where(eq(schema.book.id, request.body.bookId))
 	)[0];
 
-	if (!book) return request.sendError(401, Errors.RESSOURCE_NOT_FOUND);
+	if (!book) {
+		return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+	}
 
-	if (book.deletedAt !== null)
-		return request.sendError(401, Errors.RESSOURCE_DELETED);
+	if (book.deletedAt !== null) {
+		return request.sendError(410, Errors.RESSOURCE_DELETED);
+	}
 
 	const result = (
 		await db
 			.insert(schema.userComment)
 			.values({
 				userId: user.id,
-				bookId: bookId,
-				message: message,
+				bookId: book.id,
+				message: request.body.message,
 			})
 			.returning()
 	)[0];
 
-	return response.status(200).json({
+	return response.status(201).json({
 		value: result,
 		error: 0,
 	});
@@ -65,19 +79,19 @@ router.post("/", authentification, async (request, response) => {
 
 // READ
 router.get("/:id?", authentification, async (request, response) => {
-	const id = request.params.id;
-
-	if (id) {
+	if (request.params.id) {
 		const userComment = (
 			await db
 				.select()
 				.from(schema.userComment)
-				.where(eq(schema.userComment.id, id))
+				.where(eq(schema.userComment.id, request.params.id))
 		)[0];
 
-		if (!userComment) return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		if (!userComment) {
+			return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		}
 
-		if (request.user.id !== userComment.userId) {
+		if (userComment.userId !== request.user.id) {
 			const userPermissions = (
 				await db
 					.select()
@@ -85,11 +99,13 @@ router.get("/:id?", authentification, async (request, response) => {
 					.where(eq(schema.userPermission.userId, request.user.id))
 			)[0];
 
-			if (!userPermissions)
-				return request.sendError(401, Errors.INTERNAL_ERROR);
+			if (!userPermissions) {
+				return request.sendError(500, Errors.INTERNAL_ERROR);
+			}
 
-			if (!userPermissions.administrator && !userPermissions.moderator)
-				return request.sendError(401, Errors.UNAUTHORIZED);
+			if (!userPermissions.administrator && !userPermissions.moderator) {
+				return request.sendError(403, Errors.FORBIDDEN);
+			}
 		}
 
 		return response.status(200).json({
@@ -98,19 +114,7 @@ router.get("/:id?", authentification, async (request, response) => {
 		});
 	}
 
-	const {
-		userId,
-		bookId,
-		message,
-		like,
-		highlighted,
-		hidden,
-		createdAt,
-		deletedAt,
-		modifiedAt,
-	} = request.body ?? {};
-
-	if (userId && request.user.id !== userId) {
+	if (request.query.userId && request.query.userId !== request.user.id) {
 		const userPermissions = (
 			await db
 				.select()
@@ -118,10 +122,13 @@ router.get("/:id?", authentification, async (request, response) => {
 				.where(eq(schema.userPermission.userId, request.user.id))
 		)[0];
 
-		if (!userPermissions) return request.sendError(401, Errors.INTERNAL_ERROR);
+		if (!userPermissions) {
+			return request.sendError(500, Errors.INTERNAL_ERROR);
+		}
 
-		if (!userPermissions.administrator && !userPermissions.moderator)
-			return request.sendError(401, Errors.UNAUTHORIZED);
+		if (!userPermissions.administrator && !userPermissions.moderator) {
+			return request.sendError(403, Errors.FORBIDDEN);
+		}
 	}
 
 	const conditions: any[] = [];
@@ -131,47 +138,161 @@ router.get("/:id?", authentification, async (request, response) => {
 		conditions.push(eq(column, value));
 	};
 
-	filterEqual(userId, schema.userComment.userId);
-	filterEqual(bookId, schema.userComment.bookId);
-	filterEqual(message, schema.userComment.message);
-	filterEqual(like, schema.userComment.like);
-	filterEqual(highlighted, schema.userComment.highlighted);
-	filterEqual(hidden, schema.userComment.hidden);
+	filterEqual(request.query.userId, schema.userComment.userId);
+	filterEqual(request.query.bookId, schema.userComment.bookId);
+	filterEqual(request.query.message, schema.userComment.message);
+	filterEqual(request.query.like, schema.userComment.like);
+	filterEqual(request.query.highlighted, schema.userComment.highlighted);
+	filterEqual(request.query.hidden, schema.userComment.hidden);
 
 	const filterNullable = (value: any, column: any) => {
 		if (value === undefined) return;
 		conditions.push(value === null ? isNull(column) : eq(column, value));
 	};
 
-	filterNullable(createdAt, schema.userComment.createdAt);
-	filterNullable(deletedAt, schema.userComment.deletedAt);
-	filterNullable(modifiedAt, schema.userComment.modifiedAt);
+	filterNullable(request.query.createdAt, schema.userComment.createdAt);
+	filterNullable(request.query.deletedAt, schema.userComment.deletedAt);
+	filterNullable(request.query.modifiedAt, schema.userComment.modifiedAt);
 
-	const userComments = await db
-		.select()
-		.from(schema.userComment)
-		.where(and(...conditions));
+	let query: any = db.select().from(schema.userComment);
 
-	return response.status(200).json({
-		value: userComments,
+	if (conditions.length > 0) {
+		query = query.where(and(...conditions));
+	}
+
+	const orderMap = [
+		"userId",
+		"bookId",
+		"message",
+		"like",
+		"highlighted",
+		"hidden",
+		"createdAt",
+		"deletedAt",
+		"modifiedAt",
+	] as const;
+
+	if (
+		request.query.orderBy &&
+		orderMap.includes(request.query.orderBy as (typeof orderMap)[number])
+	) {
+		query = query.orderBy(
+			request.query.orderDirection === "desc"
+				? desc(
+						schema.userComment[
+							request.query.orderBy as (typeof orderMap)[number]
+						],
+					)
+				: asc(
+						schema.userComment[
+							request.query.orderBy as (typeof orderMap)[number]
+						],
+					),
+		);
+	}
+
+	const result = await query;
+
+	return response.status(result.length > 0 ? 200 : 204).json({
+		value: result,
 		error: 0,
 	});
 });
 
 // UPDATE
-router.put("/:id", async (request, response) => {
-	const id = request.params.id;
+router.put("/:id?", authentification, async (request, response) => {
+	if (request.params.id) {
+		const userComment = (
+			await db
+				.select()
+				.from(schema.userComment)
+				.where(eq(schema.userComment.id, request.params.id))
+		)[0];
 
-	const userComment = (
-		await db
-			.select()
-			.from(schema.userComment)
-			.where(eq(schema.userComment.id, id))
-	)[0];
+		if (!userComment) {
+			return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		}
 
-	if (!userComment) return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		if (userComment.userId !== request.user.id) {
+			const userPermissions = (
+				await db
+					.select()
+					.from(schema.userPermission)
+					.where(eq(schema.userPermission.userId, request.user.id))
+			)[0];
 
-	if (request.user.id !== userComment.userId) {
+			if (!userPermissions) {
+				return request.sendError(500, Errors.INTERNAL_ERROR);
+			}
+
+			if (!userPermissions.administrator && !userPermissions.moderator) {
+				return request.sendError(403, Errors.FORBIDDEN);
+			}
+		}
+
+		const user = (
+			await db
+				.select()
+				.from(schema.user)
+				.where(eq(schema.user.id, request.body.userId))
+		)[0];
+
+		if (!user) {
+			return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		}
+
+		if (user.deletedAt !== null) {
+			return request.sendError(410, Errors.RESSOURCE_DELETED);
+		}
+
+		const book = (
+			await db
+				.select()
+				.from(schema.book)
+				.where(eq(schema.book.id, request.body.bookId))
+		)[0];
+
+		if (!book) {
+			return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		}
+
+		if (book.deletedAt !== null) {
+			return request.sendError(410, Errors.RESSOURCE_DELETED);
+		}
+
+		const result = (
+			await db
+				.update(schema.userComment)
+				.set({
+					modifiedAt: new Date(),
+					...(request.body.userId !== undefined && {
+						userId: request.body.userId,
+					}),
+					...(request.body.bookId !== undefined && {
+						bookId: request.body.bookId,
+					}),
+					...(request.body.message !== undefined && {
+						message: request.body.message,
+					}),
+					...(request.body.like !== undefined && { like: request.body.like }),
+					...(request.body.highlighted !== undefined && {
+						highlighted: request.body.highlighted,
+					}),
+					...(request.body.hidden !== undefined && {
+						hidden: request.body.hidden,
+					}),
+				})
+				.where(eq(schema.userComment.id, request.params.id))
+				.returning()
+		)[0];
+
+		return response.status(202).json({
+			value: result,
+			error: 0,
+		});
+	}
+
+	if (request.query.userId && request.query.userId !== request.user.id) {
 		const userPermissions = (
 			await db
 				.select()
@@ -179,72 +300,161 @@ router.put("/:id", async (request, response) => {
 				.where(eq(schema.userPermission.userId, request.user.id))
 		)[0];
 
-		if (!userPermissions) return request.sendError(401, Errors.INTERNAL_ERROR);
+		if (!userPermissions) {
+			return request.sendError(500, Errors.INTERNAL_ERROR);
+		}
 
-		if (!userPermissions.administrator && !userPermissions.moderator)
-			return request.sendError(401, Errors.UNAUTHORIZED);
+		if (!userPermissions.administrator && !userPermissions.moderator) {
+			return request.sendError(403, Errors.FORBIDDEN);
+		}
 	}
 
-	if (userComment.deletedAt !== null)
-		return request.sendError(400, Errors.RESSOURCE_DELETED);
+	const conditions: any[] = [];
 
-	const { userId, bookId, message, like, highlighted, hidden } =
-		request.body ?? {};
+	const filterEqual = (value: any, column: any) => {
+		if (!value) return;
+		conditions.push(eq(column, value));
+	};
 
-	const user = (
-		await db.select().from(schema.user).where(eq(schema.user.id, userId))
-	)[0];
+	filterEqual(request.query.userId, schema.userComment.userId);
+	filterEqual(request.query.bookId, schema.userComment.bookId);
+	filterEqual(request.query.message, schema.userComment.message);
+	filterEqual(request.query.like, schema.userComment.like);
+	filterEqual(request.query.highlighted, schema.userComment.highlighted);
+	filterEqual(request.query.hidden, schema.userComment.hidden);
 
-	if (!user) return request.sendError(401, Errors.RESSOURCE_NOT_FOUND);
+	const filterNullable = (value: any, column: any) => {
+		if (value === undefined) return;
+		conditions.push(value === null ? isNull(column) : eq(column, value));
+	};
 
-	if (user.deletedAt !== null)
-		return request.sendError(401, Errors.RESSOURCE_DELETED);
+	filterNullable(request.query.createdAt, schema.userComment.createdAt);
+	filterNullable(request.query.deletedAt, schema.userComment.deletedAt);
+	filterNullable(request.query.modifiedAt, schema.userComment.modifiedAt);
 
-	const book = (
-		await db.select().from(schema.book).where(eq(schema.book.id, bookId))
-	)[0];
+	if (request.query.userId) {
+		const user = (
+			await db
+				.select()
+				.from(schema.user)
+				.where(eq(schema.user.id, request.query.userId as string))
+		)[0];
 
-	if (!book) return request.sendError(401, Errors.RESSOURCE_NOT_FOUND);
+		if (!user) {
+			return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		}
+	}
 
-	if (book.deletedAt !== null)
-		return request.sendError(401, Errors.RESSOURCE_DELETED);
+	if (request.query.bookId) {
+		const book = (
+			await db
+				.select()
+				.from(schema.book)
+				.where(eq(schema.book.id, request.query.bookId as string))
+		)[0];
 
-	const result = (
-		await db
-			.update(schema.userComment)
-			.set({
-				modifiedAt: new Date(),
-				...(userId !== undefined && { userId }),
-				...(bookId !== undefined && { bookId }),
-				...(message !== undefined && { message }),
-				...(like !== undefined && { like }),
-				...(highlighted !== undefined && { highlighted }),
-				...(hidden !== undefined && { hidden }),
-			})
-			.where(eq(schema.userComment.id, id))
-			.returning()
-	)[0];
+		if (!book) {
+			return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		}
+	}
 
-	return response.status(200).json({
+	if (request.query.chapterId) {
+		const bookChapter = (
+			await db
+				.select()
+				.from(schema.bookChapter)
+				.where(eq(schema.bookChapter.id, request.query.chapterId as string))
+		)[0];
+
+		if (!bookChapter) {
+			return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		}
+	}
+
+	let query: any = db.update(schema.userComment).set({
+		modifiedAt: new Date(),
+		...(request.body.userId !== undefined && {
+			userId: request.body.userId,
+		}),
+		...(request.body.bookId !== undefined && {
+			bookId: request.body.bookId,
+		}),
+		...(request.body.message !== undefined && {
+			message: request.body.message,
+		}),
+		...(request.body.like !== undefined && { like: request.body.like }),
+		...(request.body.highlighted !== undefined && {
+			highlighted: request.body.highlighted,
+		}),
+		...(request.body.hidden !== undefined && {
+			hidden: request.body.hidden,
+		}),
+	});
+
+	if (conditions.length > 0) {
+		query = query.where(and(...conditions));
+	}
+
+	const result = await query.returning();
+
+	return response.status(result.length > 0 ? 202 : 204).json({
 		value: result,
 		error: 0,
 	});
 });
 
 // DELETE
-router.delete("/:id", async (request, response) => {
-	const id = request.params.id;
+router.delete("/:id?", authentification, async (request, response) => {
+	if (request.params.id) {
+		const userComment = (
+			await db
+				.select()
+				.from(schema.userComment)
+				.where(eq(schema.userComment.id, request.params.id))
+		)[0];
 
-	const userComment = (
-		await db
-			.select()
-			.from(schema.userComment)
-			.where(eq(schema.userComment.id, id))
-	)[0];
+		if (!userComment) {
+			return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		}
 
-	if (!userComment) return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
+		if (userComment.deletedAt !== null) {
+			return request.sendError(409, Errors.RESSOURCE_ALREADY_DELETED);
+		}
 
-	if (request.user.id !== userComment.userId) {
+		if (userComment.userId !== request.user.id) {
+			const userPermissions = (
+				await db
+					.select()
+					.from(schema.userPermission)
+					.where(eq(schema.userPermission.userId, request.user.id))
+			)[0];
+
+			if (!userPermissions) {
+				return request.sendError(500, Errors.INTERNAL_ERROR);
+			}
+
+			if (!userPermissions.administrator && !userPermissions.moderator) {
+				return request.sendError(403, Errors.FORBIDDEN);
+			}
+		}
+
+		const result = (
+			await db
+				.update(schema.userComment)
+				.set({
+					deletedAt: new Date(),
+				})
+				.where(eq(schema.userComment.id, request.params.id))
+				.returning()
+		)[0];
+
+		return response.status(202).json({
+			value: result,
+			error: 0,
+		});
+	}
+
+	if (request.query.userId && request.query.userId !== request.user.id) {
 		const userPermissions = (
 			await db
 				.select()
@@ -252,26 +462,49 @@ router.delete("/:id", async (request, response) => {
 				.where(eq(schema.userPermission.userId, request.user.id))
 		)[0];
 
-		if (!userPermissions) return request.sendError(401, Errors.INTERNAL_ERROR);
+		if (!userPermissions) {
+			return request.sendError(500, Errors.INTERNAL_ERROR);
+		}
 
-		if (!userPermissions.administrator && !userPermissions.moderator)
-			return request.sendError(401, Errors.UNAUTHORIZED);
+		if (!userPermissions.administrator && !userPermissions.moderator) {
+			return request.sendError(403, Errors.FORBIDDEN);
+		}
 	}
 
-	if (userComment.deletedAt !== null)
-		return request.sendError(400, Errors.RESSOURCE_ALREADY_DELETED);
+	const conditions: any[] = [];
 
-	const result = (
-		await db
-			.update(schema.userComment)
-			.set({
-				deletedAt: new Date(),
-			})
-			.where(eq(schema.userComment.id, id))
-			.returning()
-	)[0];
+	const filterEqual = (value: any, column: any) => {
+		if (!value) return;
+		conditions.push(eq(column, value));
+	};
 
-	return response.status(200).json({
+	filterEqual(request.query.userId, schema.userComment.userId);
+	filterEqual(request.query.bookId, schema.userComment.bookId);
+	filterEqual(request.query.message, schema.userComment.message);
+	filterEqual(request.query.like, schema.userComment.like);
+	filterEqual(request.query.highlighted, schema.userComment.highlighted);
+	filterEqual(request.query.hidden, schema.userComment.hidden);
+
+	const filterNullable = (value: any, column: any) => {
+		if (value === undefined) return;
+		conditions.push(value === null ? isNull(column) : eq(column, value));
+	};
+
+	filterNullable(request.query.createdAt, schema.userComment.createdAt);
+	filterNullable(request.query.deletedAt, schema.userComment.deletedAt);
+	filterNullable(request.query.modifiedAt, schema.userComment.modifiedAt);
+
+	let query: any = db.update(schema.userComment).set({
+		deletedAt: new Date(),
+	});
+
+	if (conditions.length > 0) {
+		query = query.where(and(...conditions));
+	}
+
+	const result = await query;
+
+	return response.status(result.length > 0 ? 202 : 204).json({
 		value: result,
 		error: 0,
 	});

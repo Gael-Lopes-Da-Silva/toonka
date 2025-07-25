@@ -46,9 +46,9 @@ export const Errors = createErrors({
 	RESSOURCE_ALREADY_DELETED: "This ressource has already been deleted",
 
 	INVALID_ID: "This id format is invalid",
-	INVALID_PASSWORD: "This password is invalid",
-	INVALID_EMAIL: "This email is invalid",
+	INVALID_CREDENTIALS: "This credentials are invalid",
 
-	UNAUTHORIZED: "You are not authorized to perform this action",
+	UNAUTHORIZED: "You need to be logged to perform this action",
+	FORBIDDEN: "You are not authorized to perform this action",
 	INTERNAL_ERROR: "An unexpected internal error occurred",
 } as const);

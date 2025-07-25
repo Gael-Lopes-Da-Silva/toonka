@@ -25,15 +25,15 @@ router.post("/login", async (request, response) => {
 	)[0];
 
 	if (!user) {
-		return request.sendError(401, Errors.INVALID_EMAIL);
+		return request.sendError(400, Errors.INVALID_CREDENTIALS);
 	}
 
 	if (user.deletedAt !== null) {
-		return request.sendError(401, Errors.RESSOURCE_DELETED);
+		return request.sendError(410, Errors.RESSOURCE_DELETED);
 	}
 
 	if (user.token?.split(":")[0] == "ac") {
-		return request.sendError(401, Errors.USER_NOT_CONFIRMED);
+		return request.sendError(403, Errors.USER_NOT_CONFIRMED);
 	}
 
 	const [salt, storedHash] = user.password.split(":");
@@ -50,7 +50,7 @@ router.post("/login", async (request, response) => {
 	const match = timingSafeEqual(storedHashBuffer, currentHashBuffer);
 
 	if (!match) {
-		return request.sendError(401, Errors.INVALID_PASSWORD);
+		return request.sendError(400, Errors.INVALID_CREDENTIALS);
 	}
 
 	if (!process.env.API_SECRET) {
@@ -93,7 +93,7 @@ router.post("/", async (request, response) => {
 
 	if (user) {
 		return request.sendError(
-			400,
+			409,
 			user.email === request.body.email
 				? Errors.EMAIL_ALREADY_EXISTS
 				: Errors.USERNAME_ALREADY_EXISTS,
@@ -124,7 +124,7 @@ router.post("/", async (request, response) => {
 
 	// TODO: send account confirmation mail
 
-	return response.status(200).json({
+	return response.status(201).json({
 		value: result,
 		error: 0,
 	});
@@ -133,7 +133,7 @@ router.post("/", async (request, response) => {
 // READ
 router.get("/:id?", authentification, async (request, response) => {
 	if (request.params.id) {
-		if (request.user.id !== request.params.id) {
+		if (request.params.id !== request.user.id) {
 			const userPermission = (
 				await db
 					.select()
@@ -142,11 +142,11 @@ router.get("/:id?", authentification, async (request, response) => {
 			)[0];
 
 			if (!userPermission) {
-				return request.sendError(401, Errors.INTERNAL_ERROR);
+				return request.sendError(500, Errors.INTERNAL_ERROR);
 			}
 
 			if (!userPermission.administrator && !userPermission.moderator) {
-				return request.sendError(401, Errors.UNAUTHORIZED);
+				return request.sendError(403, Errors.FORBIDDEN);
 			}
 		}
 
@@ -175,11 +175,11 @@ router.get("/:id?", authentification, async (request, response) => {
 	)[0];
 
 	if (!userPermission) {
-		return request.sendError(401, Errors.INTERNAL_ERROR);
+		return request.sendError(500, Errors.INTERNAL_ERROR);
 	}
 
 	if (!userPermission.administrator && !userPermission.moderator) {
-		return request.sendError(401, Errors.UNAUTHORIZED);
+		return request.sendError(403, Errors.FORBIDDEN);
 	}
 
 	const conditions: any[] = [];
@@ -230,10 +230,10 @@ router.get("/:id?", authentification, async (request, response) => {
 		);
 	}
 
-	const users = await query;
+	const result = await query;
 
-	return response.status(200).json({
-		value: users,
+	return response.status(result.length > 0 ? 200 : 204).json({
+		value: result,
 		error: 0,
 	});
 });
@@ -241,7 +241,7 @@ router.get("/:id?", authentification, async (request, response) => {
 // UPDATE
 router.put("/:id?", authentification, async (request, response) => {
 	if (request.params.id) {
-		if (request.user.id !== request.params.id) {
+		if (request.params.id !== request.user.id) {
 			const userPermissions = (
 				await db
 					.select()
@@ -250,11 +250,11 @@ router.put("/:id?", authentification, async (request, response) => {
 			)[0];
 
 			if (!userPermissions) {
-				return request.sendError(401, Errors.INTERNAL_ERROR);
+				return request.sendError(500, Errors.INTERNAL_ERROR);
 			}
 
 			if (!userPermissions.administrator && !userPermissions.moderator) {
-				return request.sendError(401, Errors.UNAUTHORIZED);
+				return request.sendError(403, Errors.FORBIDDEN);
 			}
 		}
 
@@ -267,10 +267,6 @@ router.put("/:id?", authentification, async (request, response) => {
 
 		if (!user) {
 			return request.sendError(404, Errors.RESSOURCE_NOT_FOUND);
-		}
-
-		if (user.deletedAt !== null) {
-			return request.sendError(400, Errors.RESSOURCE_DELETED);
 		}
 
 		const result = (
@@ -295,7 +291,7 @@ router.put("/:id?", authentification, async (request, response) => {
 				.returning()
 		)[0];
 
-		return response.status(200).json({
+		return response.status(202).json({
 			value: result,
 			error: 0,
 		});
@@ -309,11 +305,11 @@ router.put("/:id?", authentification, async (request, response) => {
 	)[0];
 
 	if (!userPermission) {
-		return request.sendError(401, Errors.INTERNAL_ERROR);
+		return request.sendError(500, Errors.INTERNAL_ERROR);
 	}
 
 	if (!userPermission.administrator && !userPermission.moderator) {
-		return request.sendError(401, Errors.UNAUTHORIZED);
+		return request.sendError(403, Errors.FORBIDDEN);
 	}
 
 	const conditions: any[] = [];
@@ -353,10 +349,10 @@ router.put("/:id?", authentification, async (request, response) => {
 		query = query.where(and(...conditions));
 	}
 
-	const users = await query;
+	const result = await query.returning();
 
-	return response.status(200).json({
-		value: users,
+	return response.status(result.length > 0 ? 202 : 204).json({
+		value: result,
 		error: 0,
 	});
 });
@@ -364,7 +360,7 @@ router.put("/:id?", authentification, async (request, response) => {
 // DELETE
 router.delete("/:id?", authentification, async (request, response) => {
 	if (request.params.id) {
-		if (request.user.id !== request.params.id) {
+		if (request.params.id !== request.user.id) {
 			const userPermissions = (
 				await db
 					.select()
@@ -373,11 +369,11 @@ router.delete("/:id?", authentification, async (request, response) => {
 			)[0];
 
 			if (!userPermissions) {
-				return request.sendError(401, Errors.INTERNAL_ERROR);
+				return request.sendError(500, Errors.INTERNAL_ERROR);
 			}
 
 			if (!userPermissions.administrator && !userPermissions.moderator) {
-				return request.sendError(401, Errors.UNAUTHORIZED);
+				return request.sendError(403, Errors.FORBIDDEN);
 			}
 		}
 
@@ -393,7 +389,7 @@ router.delete("/:id?", authentification, async (request, response) => {
 		}
 
 		if (user.deletedAt !== null) {
-			return request.sendError(400, Errors.RESSOURCE_ALREADY_DELETED);
+			return request.sendError(409, Errors.RESSOURCE_ALREADY_DELETED);
 		}
 
 		const result = (
@@ -406,7 +402,7 @@ router.delete("/:id?", authentification, async (request, response) => {
 				.returning()
 		)[0];
 
-		return response.status(200).json({
+		return response.status(202).json({
 			value: result,
 			error: 0,
 		});
@@ -420,11 +416,11 @@ router.delete("/:id?", authentification, async (request, response) => {
 	)[0];
 
 	if (!userPermission) {
-		return request.sendError(401, Errors.INTERNAL_ERROR);
+		return request.sendError(500, Errors.INTERNAL_ERROR);
 	}
 
 	if (!userPermission.administrator && !userPermission.moderator) {
-		return request.sendError(401, Errors.UNAUTHORIZED);
+		return request.sendError(403, Errors.FORBIDDEN);
 	}
 
 	const conditions: any[] = [];
@@ -456,10 +452,10 @@ router.delete("/:id?", authentification, async (request, response) => {
 		query = query.where(and(...conditions));
 	}
 
-	const users = await query;
+	const result = await query.returning();
 
-	return response.status(200).json({
-		value: users,
+	return response.status(result.length > 0 ? 202 : 204).json({
+		value: result,
 		error: 0,
 	});
 });

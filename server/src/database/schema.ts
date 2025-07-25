@@ -152,17 +152,6 @@ export const bookProvider = pgTable(
 	(table) => [index("book_provider_book_id_idx").on(table.bookId)],
 );
 
-export const bookStatistic = pgTable(
-	"book_statistic",
-	{
-		id: uuid("id").primaryKey().defaultRandom(),
-		bookId: uuid("book_id")
-			.notNull()
-			.references(() => book.id),
-	},
-	(table) => [index("book_statistic_book_id_idx").on(table.bookId)],
-);
-
 export const bookTag = pgTable(
 	"book_tag",
 	{
@@ -303,32 +292,16 @@ export const userPermission = pgTable(
 	],
 );
 
-export const userStatistic = pgTable(
-	"user_statistic",
-	{
-		id: uuid("id").primaryKey().defaultRandom(),
-		userId: uuid("user_id")
-			.notNull()
-			.references(() => user.id),
-		readingStatus: real("reading_status"),
-		contentType: real("content_type"),
-		genres: real("genres"),
-	},
-	(table) => [index("user_statistic_user_id_idx").on(table.userId)],
-);
-
 export const schema = {
 	book,
 	bookChapter,
 	bookCover,
 	bookName,
 	bookProvider,
-	bookStatistic,
 	bookTag,
 	user,
 	userBookmark,
 	userComment,
 	userExcludedTag,
 	userPermission,
-	userStatistic,
 };

@@ -1,7 +1,7 @@
 CREATE TYPE "public"."book_type" AS ENUM('manga', 'manhua', 'manhwa', 'novel');--> statement-breakpoint
 CREATE TYPE "public"."user_bookmark_status" AS ENUM('reading', 'plan_to_read', 'on_hold', 'dropped', 'completed');--> statement-breakpoint
 CREATE TABLE "book" (
-	"id" uuid PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"type" "book_type" NOT NULL,
 	"score" real,
 	"synopsis" text NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE "book" (
 );
 --> statement-breakpoint
 CREATE TABLE "book_chapter" (
-	"id" uuid PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"book_id" uuid NOT NULL,
 	"name" text NOT NULL,
 	"link" text NOT NULL,
@@ -25,34 +25,29 @@ CREATE TABLE "book_chapter" (
 );
 --> statement-breakpoint
 CREATE TABLE "book_cover" (
-	"id" uuid PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"book_id" uuid NOT NULL,
 	"link" text NOT NULL,
 	CONSTRAINT "book_cover_link_unique" UNIQUE("link")
 );
 --> statement-breakpoint
 CREATE TABLE "book_name" (
-	"id" uuid PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"book_id" uuid NOT NULL,
 	"name" text NOT NULL,
 	CONSTRAINT "book_name_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
 CREATE TABLE "book_provider" (
-	"id" uuid PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"book_id" uuid NOT NULL,
 	"name" text NOT NULL,
 	"link" text NOT NULL,
 	"link_api" text
 );
 --> statement-breakpoint
-CREATE TABLE "book_statistic" (
-	"id" uuid PRIMARY KEY NOT NULL,
-	"book_id" uuid NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE "book_tag" (
-	"id" uuid PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"book_id" uuid NOT NULL,
 	"name" text NOT NULL,
 	"created_at" timestamp DEFAULT now(),
@@ -61,7 +56,7 @@ CREATE TABLE "book_tag" (
 );
 --> statement-breakpoint
 CREATE TABLE "user" (
-	"id" uuid PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"username" text NOT NULL,
 	"email" text NOT NULL,
 	"password" text NOT NULL,
@@ -76,7 +71,7 @@ CREATE TABLE "user" (
 );
 --> statement-breakpoint
 CREATE TABLE "user_bookmark" (
-	"id" uuid PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"book_id" uuid NOT NULL,
 	"chapter_id" uuid,
@@ -88,7 +83,7 @@ CREATE TABLE "user_bookmark" (
 );
 --> statement-breakpoint
 CREATE TABLE "user_comment" (
-	"id" uuid PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"book_id" uuid NOT NULL,
 	"message" text NOT NULL,
@@ -101,13 +96,13 @@ CREATE TABLE "user_comment" (
 );
 --> statement-breakpoint
 CREATE TABLE "user_excluded_tag" (
-	"id" uuid PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"tag_id" uuid NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "user_permission" (
-	"id" uuid PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"member" boolean DEFAULT true NOT NULL,
 	"moderator" boolean DEFAULT false NOT NULL,
@@ -115,19 +110,10 @@ CREATE TABLE "user_permission" (
 	"modified_at" timestamp
 );
 --> statement-breakpoint
-CREATE TABLE "user_statistic" (
-	"id" uuid PRIMARY KEY NOT NULL,
-	"user_id" uuid NOT NULL,
-	"reading_status" real,
-	"content_type" real,
-	"genres" real
-);
---> statement-breakpoint
 ALTER TABLE "book_chapter" ADD CONSTRAINT "book_chapter_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "book_cover" ADD CONSTRAINT "book_cover_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "book_name" ADD CONSTRAINT "book_name_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "book_provider" ADD CONSTRAINT "book_provider_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "book_statistic" ADD CONSTRAINT "book_statistic_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "book_tag" ADD CONSTRAINT "book_tag_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_bookmark" ADD CONSTRAINT "user_bookmark_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_bookmark" ADD CONSTRAINT "user_bookmark_book_id_book_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."book"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -137,7 +123,6 @@ ALTER TABLE "user_comment" ADD CONSTRAINT "user_comment_book_id_book_id_fk" FORE
 ALTER TABLE "user_excluded_tag" ADD CONSTRAINT "user_excluded_tag_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_excluded_tag" ADD CONSTRAINT "user_excluded_tag_tag_id_book_tag_id_fk" FOREIGN KEY ("tag_id") REFERENCES "public"."book_tag"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_permission" ADD CONSTRAINT "user_permission_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "user_statistic" ADD CONSTRAINT "user_statistic_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "book_type_idx" ON "book" USING btree ("type");--> statement-breakpoint
 CREATE INDEX "book_publication_status_idx" ON "book" USING btree ("publication_status");--> statement-breakpoint
 CREATE INDEX "book_deleted_at_idx" ON "book" USING btree ("deleted_at");--> statement-breakpoint
@@ -151,7 +136,6 @@ CREATE INDEX "book_chapter_number_idx" ON "book_chapter" USING btree ("number");
 CREATE INDEX "book_cover_book_id_idx" ON "book_cover" USING btree ("book_id");--> statement-breakpoint
 CREATE INDEX "book_name_book_id_idx" ON "book_name" USING btree ("book_id");--> statement-breakpoint
 CREATE INDEX "book_provider_book_id_idx" ON "book_provider" USING btree ("book_id");--> statement-breakpoint
-CREATE INDEX "book_statistic_book_id_idx" ON "book_statistic" USING btree ("book_id");--> statement-breakpoint
 CREATE INDEX "book_tag_book_id_idx" ON "book_tag" USING btree ("book_id");--> statement-breakpoint
 CREATE INDEX "book_tag_deleted_at_idx" ON "book_tag" USING btree ("deleted_at");--> statement-breakpoint
 CREATE INDEX "book_tag_created_at_idx" ON "book_tag" USING btree ("created_at");--> statement-breakpoint
@@ -180,5 +164,4 @@ CREATE INDEX "user_excluded_tag_user_id_idx" ON "user_excluded_tag" USING btree 
 CREATE INDEX "user_excluded_tag_tag_id_idx" ON "user_excluded_tag" USING btree ("tag_id");--> statement-breakpoint
 CREATE INDEX "user_excluded_tag_user_tag_idx" ON "user_excluded_tag" USING btree ("user_id","tag_id");--> statement-breakpoint
 CREATE INDEX "user_permission_user_id_idx" ON "user_permission" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX "user_permission_modified_at_idx" ON "user_permission" USING btree ("modified_at");--> statement-breakpoint
-CREATE INDEX "user_statistic_user_id_idx" ON "user_statistic" USING btree ("user_id");
+CREATE INDEX "user_permission_modified_at_idx" ON "user_permission" USING btree ("modified_at");
